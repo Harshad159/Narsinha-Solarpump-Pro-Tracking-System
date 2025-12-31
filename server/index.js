@@ -118,11 +118,8 @@ const seedDefaults = () => {
       .run(randomUUID(), 'Store Keeper', 'STORE_KEEPER', bcrypt.hashSync('2222', 8));
   }
 
-  const installer = db.prepare('SELECT 1 FROM installers').get();
-  if (!installer) {
-    db.prepare('INSERT INTO installers (id, name, pin_hash, mobile) VALUES (?, ?, ?, ?)')
-      .run('INST-0001', 'Demo Installer', bcrypt.hashSync('3333', 8), '8888888888');
-  }
+  // Remove legacy demo installer if present
+  db.prepare('DELETE FROM installers WHERE id = ? OR name = ?').run('INST-0001', 'Demo Installer');
 };
 
 runMigrations();
@@ -310,6 +307,18 @@ app.put('/inward/:id', (req, res) => {
   updateInwardTx(entry);
   const saved = db.prepare('SELECT * FROM inward_entries WHERE id = ?').get(req.params.id);
   res.json(toInward(saved));
+});
+
+app.delete('/inward/:id', (req, res) => {
+  const existing = db.prepare('SELECT * FROM inward_entries WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ message: 'Inward entry not found' });
+
+  db.transaction(() => {
+    db.prepare('DELETE FROM inward_materials WHERE inward_id = ?').run(req.params.id);
+    db.prepare('DELETE FROM inward_entries WHERE id = ?').run(req.params.id);
+  })();
+
+  res.json({ ok: true });
 });
 
 app.get('/dispatch', (req, res) => {

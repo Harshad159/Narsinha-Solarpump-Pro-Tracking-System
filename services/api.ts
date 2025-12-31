@@ -48,6 +48,10 @@ export const ApiService = {
     return request<InwardEntry[]>('/inward');
   },
 
+  async deleteInwardEntry(id: string): Promise<void> {
+    await request(`/inward/${id}`, { method: 'DELETE' });
+  },
+
   async createInwardEntry(entry: InwardEntry): Promise<InwardEntry> {
     return request<InwardEntry>('/inward', {
       method: 'POST',

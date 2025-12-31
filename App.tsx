@@ -156,6 +156,7 @@ const App: React.FC = () => {
           <InwardForm 
             onAdd={(e) => ApiService.createInwardEntry(e).then(res => setInwardEntries([res, ...inwardEntries]))} 
             onUpdate={(e) => ApiService.updateInwardEntry(e).then(res => setInwardEntries(inwardEntries.map(x => x.id === res.id ? res : x)))} 
+            onDelete={(id) => ApiService.deleteInwardEntry(id).then(() => setInwardEntries(inwardEntries.filter(x => x.id !== id)))}
             entries={inwardEntries} 
           />
         )}

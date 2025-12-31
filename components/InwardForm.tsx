@@ -2,15 +2,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { InwardEntry, MaterialCategory, MaterialItem } from '../types';
 import { CATEGORY_LABELS, MATERIAL_SPECS } from '../constants';
-import { PlusCircle, Plus, Layers, Inbox, Factory, ShoppingCart, Hash, FileText, Minus, Edit3, XCircle } from 'lucide-react';
+import { PlusCircle, Plus, Layers, Inbox, Factory, ShoppingCart, Hash, FileText, Minus, Edit3, XCircle, Trash2 } from 'lucide-react';
 
 interface InwardFormProps {
   onAdd: (entry: InwardEntry) => void;
   onUpdate: (entry: InwardEntry) => void;
+  onDelete: (id: string) => void;
   entries: InwardEntry[];
 }
 
-const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, entries }) => {
+const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entries }) => {
   const [billHeader, setBillHeader] = useState({
     supplier: '',
     invoiceNo: '',
@@ -301,14 +302,27 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, entries }) => 
                     </div>
                   </td>
                   <td className="px-6 py-5 text-right">
-                    <button 
-                      onClick={() => handleEditClick(e)}
-                      disabled={editingEntryId === e.id}
-                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-30"
-                      title="Edit Log"
-                    >
-                      <Edit3 size={16} />
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button 
+                        onClick={() => handleEditClick(e)}
+                        disabled={editingEntryId === e.id}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-30"
+                        title="Edit Log"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Delete this arrival record? This cannot be undone.')) {
+                            onDelete(e.id);
+                          }
+                        }}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        title="Delete Log"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
