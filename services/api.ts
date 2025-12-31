@@ -7,8 +7,8 @@ import { InwardEntry, DispatchEntry, InstallStatus, InstallerUser } from '../typ
  * Replace BASE_URL with your actual server address.
  */
 
-// Local development API (see server/index.js)
-const BASE_URL = 'http://localhost:4000';
+// Production API on Render
+const BASE_URL = 'https://solarpump-backend.onrender.com';
 const GET_TOKEN = () => localStorage.getItem('auth_token');
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

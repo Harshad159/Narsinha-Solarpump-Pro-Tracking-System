@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 // Service Worker Registration and Update Logic
 export function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -93,7 +95,7 @@ export function isOnline() {
 }
 
 // Listen to online/offline events
-export function setupOnlineStatusListener(callback) {
+export function setupOnlineStatusListener(callback: (isOnline: boolean) => void) {
   window.addEventListener('online', () => callback(true));
   window.addEventListener('offline', () => callback(false));
 }
