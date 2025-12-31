@@ -293,33 +293,38 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
       </div>
 
       {selectedSite && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-5xl max-h-[95vh] rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-500">
-             <div className="p-8 bg-slate-950 text-white flex justify-between items-start">
-                <div className="space-y-3">
-                   <div className="flex items-center gap-3">
-                      <h3 className="text-3xl font-black tracking-tight uppercase italic">{selectedSite.farmerName}</h3>
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-tight ${getStatusColor(selectedSite.status)}`}>
+        <div 
+          className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
+          onClick={() => setSelectedSite(null)}
+        >
+          <div 
+            className="bg-white w-full md:max-w-5xl md:rounded-[2.5rem] rounded-t-[2.5rem] max-h-[95vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-500"
+            onClick={(e) => e.stopPropagation()}
+          >
+             <div className="p-4 md:p-8 bg-slate-950 text-white flex flex-col md:flex-row justify-between items-start gap-4">
+                <div className="space-y-2 md:space-y-3 flex-1">
+                   <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+                      <h3 className="text-xl md:text-3xl font-black tracking-tight uppercase italic">{selectedSite.farmerName}</h3>
+                      <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-black tracking-tight ${getStatusColor(selectedSite.status)}`}>
                         {selectedSite.status}
                       </span>
                    </div>
-                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                   <div className="flex flex-col md:flex-wrap md:flex-row items-start md:items-center gap-1.5 md:gap-x-6 md:gap-y-2 text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">
                       <div className="flex items-center gap-1.5">
-                        <MapPin size={16} className="text-blue-500" /> 
-                        {selectedSite.village}, {selectedSite.taluka}, {selectedSite.subDivision}
+                        <MapPin size={14} className="text-blue-500 flex-shrink-0" /> 
+                        <span className="truncate">{selectedSite.village}, {selectedSite.taluka}, {selectedSite.subDivision}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 bg-blue-500/10 px-3 py-1 rounded-lg text-blue-400">
-                        <UserCheck size={14} />
-                        Assigned: {selectedSite.installerName} {selectedSite.installerId && <span className="text-blue-200">({selectedSite.installerId})</span>}
-                        {selectedSite.installerMobile && <span className="text-slate-500 text-[10px] ml-1">| {selectedSite.installerMobile}</span>}
+                      <div className="flex items-center gap-1.5 bg-blue-500/10 px-2 md:px-3 py-0.5 md:py-1 rounded-lg text-blue-400 truncate">
+                        <UserCheck size={12} className="flex-shrink-0" />
+                        <span className="truncate">Assigned: {selectedSite.installerName} {selectedSite.installerId && <span className="text-blue-200">({selectedSite.installerId})</span>}</span>
                       </div>
-                      <button onClick={() => handleCopyId(selectedSite.beneficiaryId)} className="flex items-center gap-1.5 font-mono text-blue-400 hover:text-blue-300 transition-colors">
+                      <button onClick={() => handleCopyId(selectedSite.beneficiaryId)} className="flex items-center gap-1.5 font-mono text-blue-400 hover:text-blue-300 transition-colors text-[9px] md:text-xs flex-shrink-0">
                         {selectedSite.beneficiaryId}
-                        {copiedId === selectedSite.beneficiaryId ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                        {copiedId === selectedSite.beneficiaryId ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
                       </button>
                    </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex md:flex-col items-center gap-2 w-full md:w-auto">
                    <button 
                      onClick={() => {
                        const password = window.prompt('⚠️ ADMIN ONLY: Enter password to delete site progress record:');
@@ -332,17 +337,25 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
                          alert('❌ Incorrect password. Deletion cancelled.');
                        }
                      }}
-                     className="p-4 rounded-2xl flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-all bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-900/40"
+                     className="p-2 md:p-4 flex-1 md:flex-none rounded-2xl flex items-center justify-center gap-1 md:gap-2 font-black uppercase text-[10px] md:text-xs tracking-widest transition-all bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-900/40"
                      title="Delete Site Progress (Admin Only)"
                    >
-                     <Trash2 size={18} />
-                     Delete Site
+                     <Trash2 size={16} className="md:block hidden" />
+                     <Trash2 size={14} className="md:hidden block" />
+                     <span className="md:inline">Delete</span>
                    </button>
-                   <button onClick={() => setShowUpdateForm(!showUpdateForm)} className={`p-4 rounded-2xl flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-all ${showUpdateForm ? 'bg-slate-800 text-slate-400' : 'bg-orange-600 text-white hover:bg-orange-500 shadow-lg shadow-orange-900/40'}`}>
-                      {showUpdateForm ? <X size={18} /> : <Plus size={18} />}
-                      {showUpdateForm ? 'Cancel' : 'Update Status'}
+                   <button onClick={() => setShowUpdateForm(!showUpdateForm)} className={`p-2 md:p-4 flex-1 md:flex-none rounded-2xl flex items-center justify-center gap-1 md:gap-2 font-black uppercase text-[10px] md:text-xs tracking-widest transition-all ${showUpdateForm ? 'bg-slate-800 text-slate-400' : 'bg-orange-600 text-white hover:bg-orange-500 shadow-lg shadow-orange-900/40'}`}>
+                      {showUpdateForm ? <X size={16} className="md:block hidden" /> : <Plus size={16} className="md:block hidden" />}
+                      {showUpdateForm ? <X size={14} className="md:hidden block" /> : <Plus size={14} className="md:hidden block" />}
+                      <span className="md:inline">{showUpdateForm ? 'Cancel' : 'Update'}</span>
                    </button>
-                   <button onClick={() => setSelectedSite(null)} className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl text-white transition-colors"><X size={28} /></button>
+                   <button 
+                     onClick={() => setSelectedSite(null)} 
+                     className="p-2 md:p-3 bg-white/10 hover:bg-white/20 rounded-2xl text-white transition-colors flex-shrink-0"
+                   >
+                     <X size={20} className="md:block hidden" />
+                     <X size={18} className="md:hidden block" />
+                   </button>
                 </div>
              </div>
              
