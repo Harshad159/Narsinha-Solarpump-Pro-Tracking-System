@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Narsinha SolarPump: Pro-Tracking System installer deletion ",
+  "description": "Mobile-first material management and installation tracking for field engineers and warehouse staff.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -1,0 +1,20 @@
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="500" height="500" fill="#1e3a8a"/>
+  <circle cx="250" cy="180" r="50" fill="#f97316" />
+  <g fill="#f97316">
+    <rect x="245" y="110" width="10" height="30" rx="5" transform="rotate(0 250 180)"/>
+    <rect x="245" y="110" width="10" height="30" rx="5" transform="rotate(45 250 180)"/>
+    <rect x="245" y="110" width="10" height="30" rx="5" transform="rotate(90 250 180)"/>
+    <rect x="245" y="110" width="10" height="30" rx="5" transform="rotate(135 250 180)"/>
+    <rect x="245" y="110" width="10" height="30" rx="5" transform="rotate(180 250 180)"/>
+    <rect x="245" y="110" width="10" height="30" rx="5" transform="rotate(225 250 180)"/>
+    <rect x="245" y="110" width="10" height="30" rx="5" transform="rotate(270 250 180)"/>
+    <rect x="245" y="110" width="10" height="30" rx="5" transform="rotate(315 250 180)"/>
+  </g>
+  <path d="M120 220 L380 280 L360 400 L160 400 Z" fill="#1e40af" />
+  <path d="M130 235 L370 285 M145 270 L365 315 M160 305 L360 345 M175 340 L355 375" stroke="#fff" stroke-width="2" />
+  <path d="M180 230 L220 400 M240 245 L260 400 M300 260 L310 400" stroke="#fff" stroke-width="2" />
+  <rect x="390" y="150" width="40" height="250" rx="5" fill="#1e40af" />
+  <rect x="395" y="160" width="30" height="10" fill="#3b82f6" opacity="0.5" />
+  <path d="M100 350 Q250 500 450 300" fill="none" stroke="#16a34a" stroke-width="15" stroke-linecap="round" />
+</svg>

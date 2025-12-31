@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#1e3a8a"/>
+  <circle cx="256" cy="180" r="50" fill="#f97316"/>
+  <g fill="#f97316">
+    <rect x="251" y="130" width="10" height="30" rx="5" transform="rotate(0 256 180)"/>
+    <rect x="251" y="130" width="10" height="30" rx="5" transform="rotate(45 256 180)"/>
+    <rect x="251" y="130" width="10" height="30" rx="5" transform="rotate(90 256 180)"/>
+    <rect x="251" y="130" width="10" height="30" rx="5" transform="rotate(135 256 180)"/>
+    <rect x="251" y="130" width="10" height="30" rx="5" transform="rotate(180 256 180)"/>
+    <rect x="251" y="130" width="10" height="30" rx="5" transform="rotate(225 256 180)"/>
+    <rect x="251" y="130" width="10" height="30" rx="5" transform="rotate(270 256 180)"/>
+    <rect x="251" y="130" width="10" height="30" rx="5" transform="rotate(315 256 180)"/>
+  </g>
+  <path d="M150 240 L362 290 L345 400 L180 400 Z" fill="#1e40af"/>
+  <path d="M160 260 L350 300 M170 290 L345 330 M180 320 L340 355 M190 350 L335 380" stroke="#fff" stroke-width="3"/>
+  <path d="M200 245 L230 400 M250 260 L270 400 M310 275 L320 400" stroke="#fff" stroke-width="3"/>
+  <rect x="380" y="160" width="40" height="240" rx="5" fill="#1e40af"/>
+  <rect x="385" y="170" width="30" height="10" fill="#3b82f6" opacity="0.5"/>
+  <path d="M120 360 Q256 480 450 320" fill="none" stroke="#16a34a" stroke-width="20" stroke-linecap="round"/>
+  <text x="256" y="470" font-family="Arial, sans-serif" font-size="48" font-weight="900" fill="#fff" text-anchor="middle">NARSINHA</text>
+</svg>
