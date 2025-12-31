@@ -5,7 +5,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    const base = '/Narsinha-Solarpump-Pro-Tracking-System/';
     return {
+      base,
       server: {
         port: 3000,
         host: '0.0.0.0',
@@ -19,39 +21,39 @@ export default defineConfig(({ mode }) => {
             name: 'Narsinha SolarPump Tracking System',
             short_name: 'SolarPump Tracker',
             description: 'Professional solar pump tracking and management system with real-time monitoring and reporting',
-            start_url: '/',
-            scope: '/',
+            start_url: base,
+            scope: base,
             theme_color: '#0f172a',
             background_color: '#ffffff',
             display: 'standalone',
             orientation: 'portrait-primary',
             icons: [
               {
-                src: '/icon.svg',
+                src: 'icon.svg',
                 sizes: 'any',
                 type: 'image/svg+xml',
                 purpose: 'any'
               },
               {
-                src: '/icon-192.png',
+                src: 'icon-192.png',
                 sizes: '192x192',
                 type: 'image/png',
                 purpose: 'any'
               },
               {
-                src: '/icon-192.png',
+                src: 'icon-192.png',
                 sizes: '192x192',
                 type: 'image/png',
                 purpose: 'maskable'
               },
               {
-                src: '/icon-512.png',
+                src: 'icon-512.png',
                 sizes: '512x512',
                 type: 'image/png',
                 purpose: 'any'
               },
               {
-                src: '/icon-512.png',
+                src: 'icon-512.png',
                 sizes: '512x512',
                 type: 'image/png',
                 purpose: 'maskable'
@@ -59,13 +61,13 @@ export default defineConfig(({ mode }) => {
             ],
             screenshots: [
               {
-                src: '/icon-192.png',
+                src: 'icon-192.png',
                 sizes: '192x192',
                 type: 'image/png',
                 form_factor: 'narrow'
               },
               {
-                src: '/icon-512.png',
+                src: 'icon-512.png',
                 sizes: '512x512',
                 type: 'image/png',
                 form_factor: 'wide'
@@ -77,10 +79,10 @@ export default defineConfig(({ mode }) => {
                 name: 'Dashboard',
                 short_name: 'Dashboard',
                 description: 'View dashboard and analytics',
-                url: '/?page=dashboard',
+                url: `${base}?page=dashboard`,
                 icons: [
                   {
-                    src: '/icon-192.png',
+                    src: 'icon-192.png',
                     sizes: '192x192'
                   }
                 ]

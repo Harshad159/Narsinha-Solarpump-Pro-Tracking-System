@@ -1,8 +1,9 @@
 const CACHE_NAME = 'solarpump-v1';
+const BASE = '/Narsinha-Solarpump-Pro-Tracking-System/';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  BASE,
+  `${BASE}index.html`,
+  `${BASE}manifest.json`
 ];
 
 // Install event - cache essential files
@@ -55,7 +56,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           // Fallback to cache for offline
           return caches.match(event.request).then((response) => {
-            return response || caches.match('/index.html');
+            return response || caches.match(`${BASE}index.html`);
           });
         })
     );
