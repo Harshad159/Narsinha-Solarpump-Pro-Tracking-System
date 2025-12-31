@@ -150,6 +150,7 @@ const App: React.FC = () => {
             inwardEntries={inwardEntries} 
             userRole={role} 
             onUpdateStatus={handleUpdateStatus}
+            onDeleteDispatch={(id) => ApiService.deleteDispatchEntry(id).then(() => setDispatchEntries(dispatchEntries.filter(x => x.id !== id)))}
           />
         )}
         {activeTab === 'inward' && (

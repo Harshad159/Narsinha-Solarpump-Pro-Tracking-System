@@ -78,6 +78,10 @@ export const ApiService = {
     });
   },
 
+  async deleteDispatchEntry(id: string): Promise<void> {
+    await request(`/dispatch/${id}`, { method: 'DELETE' });
+  },
+
   async updateSiteStatus(beneficiaryId: string, newStatus: InstallStatus, remarks: string, imageUrls?: string[]): Promise<DispatchEntry> {
     return request<DispatchEntry>(`/site/${beneficiaryId}/status`, {
       method: 'PATCH',

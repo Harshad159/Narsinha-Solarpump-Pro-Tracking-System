@@ -45,6 +45,10 @@ export const useStock = (inwardEntries: InwardEntry[], dispatchEntries: Dispatch
             catItems[item.specification] = 0;
           }
           catItems[item.specification] -= item.quantity;
+          // Prevent negative stock - clamp to zero
+          if (catItems[item.specification] < 0) {
+            catItems[item.specification] = 0;
+          }
         }
       });
     });

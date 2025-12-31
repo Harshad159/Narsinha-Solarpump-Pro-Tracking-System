@@ -22,7 +22,8 @@ import {
   Copy,
   Check,
   Phone,
-  UserCheck
+  UserCheck,
+  Trash2
 } from 'lucide-react';
 import JSZip from 'jszip';
 
@@ -32,9 +33,10 @@ interface DashboardProps {
   inwardEntries: InwardEntry[];
   userRole: UserRole;
   onUpdateStatus: (beneficiaryId: string, status: InstallStatus, remarks: string, imageUrls?: string[]) => Promise<void>;
+  onDeleteDispatch: (id: string) => Promise<void>;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUpdateStatus }) => {
+const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUpdateStatus, onDeleteDispatch }) => {
   const [selectedSite, setSelectedSite] = useState<DispatchEntry | null>(null);
   const [lightboxImage, setLightboxImage] = useState<{url: string, name: string} | null>(null);
   const [isZipping, setIsZipping] = useState<string | null>(null);
@@ -318,6 +320,24 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
                    </div>
                 </div>
                 <div className="flex items-center gap-3">
+                   <button 
+                     onClick={() => {
+                       const password = window.prompt('⚠️ ADMIN ONLY: Enter password to delete site progress record:');
+                       if (password === 'Narsinha@2400') {
+                         if (window.confirm(`Delete site progress for ${selectedSite.farmerName} (${selectedSite.beneficiaryId})? This cannot be undone.`)) {
+                           onDeleteDispatch(selectedSite.id);
+                           setSelectedSite(null);
+                         }
+                       } else if (password !== null) {
+                         alert('❌ Incorrect password. Deletion cancelled.');
+                       }
+                     }}
+                     className="p-4 rounded-2xl flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-all bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-900/40"
+                     title="Delete Site Progress (Admin Only)"
+                   >
+                     <Trash2 size={18} />
+                     Delete Site
+                   </button>
                    <button onClick={() => setShowUpdateForm(!showUpdateForm)} className={`p-4 rounded-2xl flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-all ${showUpdateForm ? 'bg-slate-800 text-slate-400' : 'bg-orange-600 text-white hover:bg-orange-500 shadow-lg shadow-orange-900/40'}`}>
                       {showUpdateForm ? <X size={18} /> : <Plus size={18} />}
                       {showUpdateForm ? 'Cancel' : 'Update Status'}

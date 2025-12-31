@@ -313,12 +313,17 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entr
                       </button>
                       <button
                         onClick={() => {
-                          if (window.confirm('Delete this arrival record? This cannot be undone.')) {
-                            onDelete(e.id);
+                          const password = window.prompt('⚠️ ADMIN ONLY: Enter password to delete arrival record:');
+                          if (password === 'Narsinha@2400') {
+                            if (window.confirm('Delete this arrival record? This cannot be undone.')) {
+                              onDelete(e.id);
+                            }
+                          } else if (password !== null) {
+                            alert('❌ Incorrect password. Deletion cancelled.');
                           }
                         }}
                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        title="Delete Log"
+                        title="Delete Log (Admin Only)"
                       >
                         <Trash2 size={16} />
                       </button>

@@ -201,9 +201,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ installers, onAddInstal
                    <span className="text-lg font-black text-slate-600 tracking-widest leading-none">{inst.pin}</span>
                 </div>
                 <button 
-                  onClick={() => confirm(`Permanently revoke access and delete terminal for ${inst.name}?`) && onDeleteInstaller(inst.id)}
+                  onClick={() => {
+                    const password = window.prompt('⚠️ ADMIN ONLY: Enter password to delete installer profile:');
+                    if (password === 'Narsinha@2400') {
+                      if (window.confirm(`Permanently revoke access and delete terminal for ${inst.name}? This cannot be undone.`)) {
+                        onDeleteInstaller(inst.id);
+                      }
+                    } else if (password !== null) {
+                      alert('❌ Incorrect password. Deletion cancelled.');
+                    }
+                  }}
                   className="p-4 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 border border-transparent hover:border-red-100"
-                  title="Delete Personnel"
+                  title="Delete Personnel (Admin Only)"
                 >
                   <Trash2 size={24} />
                 </button>

@@ -417,6 +417,19 @@ app.patch('/site/:beneficiaryId/status', (req, res) => {
   res.json(toDispatch(updated));
 });
 
+app.delete('/dispatch/:id', (req, res) => {
+  const { id } = req.params;
+  const entry = db.prepare('SELECT * FROM dispatch_entries WHERE id = ?').get(id);
+  if (!entry) return res.status(404).json({ message: 'Dispatch entry not found' });
+
+  // Delete cascade: history, materials, then entry
+  db.prepare('DELETE FROM dispatch_history WHERE dispatch_id = ?').run(id);
+  db.prepare('DELETE FROM dispatch_materials WHERE dispatch_id = ?').run(id);
+  db.prepare('DELETE FROM dispatch_entries WHERE id = ?').run(id);
+
+  res.json({ ok: true });
+});
+
 // Catch-all: serve index.html for React routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(DIST_PATH, 'index.html'), (err) => {
