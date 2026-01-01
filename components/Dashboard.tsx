@@ -56,9 +56,6 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [lowStockThreshold, setLowStockThreshold] = useState<number>(15);
-  const [showThresholdConfig, setShowThresholdConfig] = useState(false);
-
   const filteredDispatches = useMemo(() => {
     return dispatches.filter(d => {
       const matchesSearch = 
