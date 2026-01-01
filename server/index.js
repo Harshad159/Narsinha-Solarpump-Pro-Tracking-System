@@ -106,19 +106,29 @@ const runMigrations = () => {
 };
 
 const seedDefaults = () => {
-  const admin = db.prepare('SELECT 1 FROM users WHERE role = ?').get('ADMIN');
-  if (!admin) {
-    db.prepare('INSERT INTO users (id, name, role, pin_hash, mobile) VALUES (?, ?, ?, ?, ?)')
-      .run(randomUUID(), 'Admin', 'ADMIN', bcrypt.hashSync('1111', 8), '9999999999');
+  // Check if this is the first run
+  const isSetup = db.prepare('SELECT 1 FROM meta WHERE key = ?').get('db_initialized');
+  
+  // Only seed if this is the first run (not on every restart)
+  if (!isSetup) {
+    const admin = db.prepare('SELECT 1 FROM users WHERE role = ?').get('ADMIN');
+    if (!admin) {
+      db.prepare('INSERT INTO users (id, name, role, pin_hash, mobile) VALUES (?, ?, ?, ?, ?)')
+        .run(randomUUID(), 'Admin', 'ADMIN', bcrypt.hashSync('1111', 8), '9999999999');
+    }
+
+    const keeper = db.prepare('SELECT 1 FROM users WHERE role = ?').get('STORE_KEEPER');
+    if (!keeper) {
+      db.prepare('INSERT INTO users (id, name, role, pin_hash) VALUES (?, ?, ?, ?)')
+        .run(randomUUID(), 'Store Keeper', 'STORE_KEEPER', bcrypt.hashSync('2222', 8));
+    }
+
+    // Mark setup as complete so this doesn't run on every server restart
+    db.prepare('INSERT INTO meta(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+      .run('db_initialized', 'true');
   }
 
-  const keeper = db.prepare('SELECT 1 FROM users WHERE role = ?').get('STORE_KEEPER');
-  if (!keeper) {
-    db.prepare('INSERT INTO users (id, name, role, pin_hash) VALUES (?, ?, ?, ?)')
-      .run(randomUUID(), 'Store Keeper', 'STORE_KEEPER', bcrypt.hashSync('2222', 8));
-  }
-
-  // Remove legacy demo installer if present
+  // Always clean up legacy demo installer if present
   db.prepare('DELETE FROM installers WHERE id = ? OR name = ?').run('INST-0001', 'Demo Installer');
 };
 
@@ -428,6 +438,39 @@ app.delete('/dispatch/:id', (req, res) => {
   db.prepare('DELETE FROM dispatch_entries WHERE id = ?').run(id);
 
   res.json({ ok: true });
+});
+
+// ADMIN: Clear all sample/test data (for going live)
+// ⚠️ WARNING: This deletes ALL inward and dispatch data - use with caution!
+app.post('/admin/reset-sample-data', (req, res) => {
+  // Require admin authentication - only ADMIN role can call this
+  if (req.user?.role !== 'ADMIN') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+
+  try {
+    db.transaction(() => {
+      // Delete all dispatch data
+      db.prepare('DELETE FROM dispatch_history').run();
+      db.prepare('DELETE FROM dispatch_materials').run();
+      db.prepare('DELETE FROM dispatch_entries').run();
+
+      // Delete all inward data
+      db.prepare('DELETE FROM inward_materials').run();
+      db.prepare('DELETE FROM inward_entries').run();
+
+      // Reset challan counter
+      db.prepare('DELETE FROM meta WHERE key = ?').run('last_challan_no');
+    })();
+
+    res.json({ 
+      ok: true, 
+      message: 'All sample inward and dispatch data cleared successfully' 
+    });
+  } catch (error) {
+    console.error('Error clearing sample data:', error);
+    res.status(500).json({ message: 'Failed to clear data' });
+  }
 });
 
 // Catch-all: serve index.html for React routing

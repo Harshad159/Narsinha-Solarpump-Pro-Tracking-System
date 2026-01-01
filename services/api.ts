@@ -107,6 +107,13 @@ export const ApiService = {
     });
   },
 
+  // --- ADMIN UTILITIES ---
+  async resetSampleData(): Promise<{ ok: boolean; message: string }> {
+    return request<{ ok: boolean; message: string }>('/admin/reset-sample-data', {
+      method: 'POST',
+    });
+  },
+
   // --- AUTHENTICATION ---
   async login(payload: { role: string; id?: string; pin: string }): Promise<{ token: string; userName: string }> {
     return request<{ token: string; userName: string }>('/auth/login', {

@@ -3,6 +3,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { Stock, DispatchEntry, InwardEntry, InstallStatus, MaterialCategory, UserRole } from '../types';
 import { CATEGORY_LABELS } from '../constants';
 import { compressImage, base64ToBlob } from '../utils/mediaUtils';
+import { ApiService } from '../services/api';
 import { 
   Eye, 
   X, 
@@ -23,7 +24,8 @@ import {
   Check,
   Phone,
   UserCheck,
-  Trash2
+  Trash2,
+  Zap
 } from 'lucide-react';
 import JSZip from 'jszip';
 
@@ -42,12 +44,15 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
   const [isZipping, setIsZipping] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [showThresholdConfig, setShowThresholdConfig] = useState(false);
+  const [lowStockThreshold, setLowStockThreshold] = useState(50);
   
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [newStatus, setNewStatus] = useState<InstallStatus>(InstallStatus.NOT_STARTED);
   const [remarks, setRemarks] = useState('');
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isProcessingImages, setIsProcessingImages] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -147,6 +152,27 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
     }
   };
 
+  const handleResetSampleData = async () => {
+    const confirmed = window.confirm(
+      '⚠️ WARNING: This will DELETE ALL sample/test inward and dispatch data permanently.\n\nAre you sure you want to proceed? This cannot be undone.'
+    );
+    
+    if (!confirmed) return;
+
+    setIsResetting(true);
+    try {
+      const result = await ApiService.resetSampleData();
+      alert('✅ ' + result.message);
+      // Reload page to reflect changes
+      window.location.reload();
+    } catch (error) {
+      console.error('Reset failed:', error);
+      alert('❌ Failed to reset data. Check console for details.');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -173,6 +199,17 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
                 className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-blue-500 hover:text-blue-600 transition-all shadow-sm"
              >
                 <Settings2 size={14} /> Alerts
+             </button>
+           )}
+
+           {userRole === UserRole.ADMIN && (
+             <button 
+                onClick={handleResetSampleData}
+                disabled={isResetting}
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-red-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-red-600 hover:border-red-500 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+             >
+                {isResetting ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+                Clear Test Data
              </button>
            )}
         </div>
