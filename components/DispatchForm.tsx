@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { DispatchEntry, Stock, InstallStatus, MaterialCategory, MaterialItem, SystemCapacity, InstallerUser } from '../types';
 import { CATEGORY_LABELS, MATERIAL_SPECS, SYSTEM_PRESET_CONFIG } from '../constants';
 import { downloadChallanAsImage } from '../utils/challanGenerator';
-import { Truck, Plus, User, MapPin, Calendar as CalendarIcon, Globe, Zap, Layers, Trash2, AlertCircle, ShoppingCart, X, Hash, ClipboardList, Phone, UserCheck } from 'lucide-react';
+import { Truck, Plus, User, MapPin, Calendar as CalendarIcon, Globe, Zap, Layers, Trash2, AlertCircle, ShoppingCart, X, Hash, ClipboardList, Phone, UserCheck, Download } from 'lucide-react';
 
 interface DispatchFormProps {
   onAdd: (entry: DispatchEntry) => Promise<DispatchEntry | null>;
@@ -397,6 +397,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
                   <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Consignee (Farmer)</th>
                   <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Vehicle / Site</th>
                   <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Dispatch Summary</th>
+                  <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -425,6 +426,16 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
                             </div>
                           ))}
                        </div>
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                       <button 
+                         onClick={() => downloadChallanAsImage(d)}
+                         className="p-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-xl transition-all border border-orange-100 inline-flex items-center gap-1.5 text-[10px] font-black uppercase"
+                         title="D5wnload Delivery Challan"
+                       >
+                         <Download size={14} />
+                         <span className="hidden sm:inline">DC</span>
+                       </button>
                     </td>
                  </tr>
                ))}

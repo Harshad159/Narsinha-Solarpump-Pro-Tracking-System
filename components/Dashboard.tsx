@@ -45,7 +45,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [showThresholdConfig, setShowThresholdConfig] = useState(false);
-  const [lowStockThreshold, setLowStockThreshold] = useState(50);
+  const [lowStockThreshold, setLowStockThreshold] = useState(() => {
+    const saved = localStorage.getItem('lowStockThreshold');
+    return saved ? parseInt(saved) : 50;
+  });
   
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [newStatus, setNewStatus] = useState<InstallStatus>(InstallStatus.NOT_STARTED);
@@ -150,6 +153,15 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
   };
 
   const handleResetSampleData = async () => {
+    const password = window.prompt('⚠️ ADMIN ONLY: Enter password to clear all test data:');
+    
+    if (password === null) return; // User cancelled
+    
+    if (password !== 'Narsinha@2400') {
+      alert('❌ Incorrect password. Operation cancelled.');
+      return;
+    }
+    
     const confirmed = window.confirm(
       '⚠️ WARNING: This will DELETE ALL sample/test inward and dispatch data permanently.\n\nAre you sure you want to proceed? This cannot be undone.'
     );
@@ -170,6 +182,11 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
     }
   };
 
+  const handleSaveThreshold = () => {
+    localStorage.setItem('lowStockThreshold', lowStockThreshold.toString());
+    setShowThresholdConfig(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -183,7 +200,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
              <div className="bg-white border border-blue-100 p-2 rounded-2xl flex items-center gap-3 shadow-xl animate-in slide-in-from-right-4 duration-300">
                 <span className="text-[9px] font-black text-slate-400 uppercase pl-2">Low Stock Limit</span>
                 <input 
-                  type="number" 
+                  type="number" handleSaveThreshold} className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all" title="Save and Close">
+                  <Check size={14} />
+                </button>
+                <button onClick={handleSaveThreshold
                   value={lowStockThreshold} 
                   onChange={(e) => setLowStockThreshold(Math.max(0, parseInt(e.target.value) || 0))}
                   className="w-16 p-2 bg-slate-50 border border-slate-200 rounded-xl text-center font-black text-xs outline-none focus:ring-2 focus:ring-blue-500"

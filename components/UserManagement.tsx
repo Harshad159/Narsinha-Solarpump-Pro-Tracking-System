@@ -14,7 +14,9 @@ import {
   Phone, 
   CreditCard, 
   IdCard,
-  Lock
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface UserManagementProps {
@@ -32,6 +34,19 @@ const UserManagement: React.FC<UserManagementProps> = ({ installers, onAddInstal
     mobile: '', 
     aadhaar: '' 
   });
+  const [visiblePins, setVisiblePins] = useState<Set<string>>(new Set());
+
+  const togglePinVisibility = (installerId: string) => {
+    setVisiblePins(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(installerId)) {
+        newSet.delete(installerId);
+      } else {
+        newSet.add(installerId);
+      }
+      return newSet;
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,9 +211,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ installers, onAddInstal
              </div>
              
              <div className="flex sm:flex-col items-center gap-3 w-full sm:w-auto">
-                <div className="flex-1 sm:flex-none flex flex-col items-center px-6 py-2 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+                <div className="flex-1 sm:flex-none flex flex-col items-center px-6 py-2 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner relative group">
                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">LOGIN PIN</span>
-                   <span className="text-lg font-black text-slate-600 tracking-widest leading-none">{inst.pin}</span>
+                   <div className="flex items-center gap-2">
+                     <span className="text-lg font-black text-slate-600 tracking-widest leading-none">
+                       {visiblePins.has(inst.id) ? inst.pin : '••••'}
+                     </span>
+                     <button
+                       onClick={() => togglePinVisibility(inst.id)}
+                       className="p-1 hover:bg-slate-200 rounded-lg transition-all opacity-50 group-hover:opacity-100"
+                       title={visiblePins.has(inst.id) ? 'Hide PIN' : 'Show PIN'}
+                     >
+                       {visiblePins.has(inst.id) ? <EyeOff size={12} className="text-slate-500" /> : <Eye size={12} className="text-slate-500" />}
+                     </button>
+                   </div>
                 </div>
                 <button 
                   onClick={() => {
