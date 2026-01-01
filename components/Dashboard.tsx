@@ -200,15 +200,15 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
              <div className="bg-white border border-blue-100 p-2 rounded-2xl flex items-center gap-3 shadow-xl animate-in slide-in-from-right-4 duration-300">
                 <span className="text-[9px] font-black text-slate-400 uppercase pl-2">Low Stock Limit</span>
                 <input 
-                  type="number" handleSaveThreshold} className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all" title="Save and Close">
-                  <Check size={14} />
-                </button>
-                <button onClick={handleSaveThreshold
+                  type="number" 
                   value={lowStockThreshold} 
                   onChange={(e) => setLowStockThreshold(Math.max(0, parseInt(e.target.value) || 0))}
                   className="w-16 p-2 bg-slate-50 border border-slate-200 rounded-xl text-center font-black text-xs outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <button onClick={() => setShowThresholdConfig(false)} className="p-2 bg-slate-100 rounded-xl hover:bg-slate-200"><X size={14} /></button>
+                <button onClick={handleSaveThreshold} className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all" title="Save and Close">
+                  <Check size={14} />
+                </button>
+                <button onClick={handleSaveThreshold} className="p-2 bg-slate-100 rounded-xl hover:bg-slate-200"><X size={14} /></button>
              </div>
            ) : (
              <button 
