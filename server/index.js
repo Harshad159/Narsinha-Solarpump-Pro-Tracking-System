@@ -449,7 +449,7 @@ app.post('/admin/reset-sample-data', (req, res) => {
   }
 
   try {
-    db.transaction(() => {
+    const clearData = db.transaction(() => {
       // Delete all dispatch data
       db.prepare('DELETE FROM dispatch_history').run();
       db.prepare('DELETE FROM dispatch_materials').run();
@@ -461,7 +461,9 @@ app.post('/admin/reset-sample-data', (req, res) => {
 
       // Reset challan counter
       db.prepare('DELETE FROM meta WHERE key = ?').run('last_challan_no');
-    })();
+    });
+    
+    clearData();
 
     res.json({ 
       ok: true, 
@@ -469,7 +471,7 @@ app.post('/admin/reset-sample-data', (req, res) => {
     });
   } catch (error) {
     console.error('Error clearing sample data:', error);
-    res.status(500).json({ message: 'Failed to clear data' });
+    res.status(500).json({ message: 'Failed to clear data: ' + error.message });
   }
 });
 
