@@ -144,11 +144,18 @@ const ReportModule: React.FC<ReportModuleProps> = ({ inward, dispatches, stock }
 
       <div className="space-y-4">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] pl-2 border-l-4 border-blue-600">Audit & Logistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col items-center text-center group transition-all">
               <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 mb-4 group-hover:scale-110 transition-transform"><Package size={28} /></div>
               <h4 className="font-black text-slate-800 uppercase text-xs tracking-widest mb-2">Live Stock</h4>
               <button onClick={exportStockToExcel} className="mt-auto w-full py-3 bg-green-50 text-green-700 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all flex items-center justify-center gap-2">
+                 <FileSpreadsheet size={14} /> Export
+              </button>
+           </div>
+           <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex flex-col items-center text-center group transition-all">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform"><Inbox size={28} /></div>
+              <h4 className="font-black text-slate-800 uppercase text-xs tracking-widest mb-2">Arrival Log</h4>
+              <button onClick={exportInwardData} className="mt-auto w-full py-3 bg-blue-50 text-blue-700 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2">
                  <FileSpreadsheet size={14} /> Export
               </button>
            </div>

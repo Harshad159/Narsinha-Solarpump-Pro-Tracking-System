@@ -279,6 +279,7 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entr
                 <th className="px-6 py-5">Date / Invoice</th>
                 <th className="px-6 py-5">Supplier</th>
                 <th className="px-6 py-5">Materials Received</th>
+                <th className="px-6 py-5">Remarks</th>
                 <th className="px-6 py-5 text-right">Action</th>
               </tr>
             </thead>
@@ -299,6 +300,11 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entr
                           <span className="uppercase tracking-tight">{m.specification}</span>
                         </div>
                       ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="text-xs text-slate-600 font-medium max-w-xs">
+                      {e.remarks || <span className="text-slate-300 italic">No remarks</span>}
                     </div>
                   </td>
                   <td className="px-6 py-5 text-right">
@@ -333,7 +339,7 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entr
               ))}
               {entries.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-20 text-center text-slate-300 font-black uppercase text-xs tracking-widest">No Recent Arrivals</td>
+                  <td colSpan={5} className="px-6 py-20 text-center text-slate-300 font-black uppercase text-xs tracking-widest">No Recent Arrivals</td>
                 </tr>
               )}
             </tbody>
