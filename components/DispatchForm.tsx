@@ -14,7 +14,7 @@ interface DispatchFormProps {
 
 const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, installers }) => {
   const [siteData, setSiteData] = useState({
-    installerName: '', installerId: '', installerMobile: '', beneficiaryId: '', farmerName: '', farmerMobile: '', 
+    installerName: '', installerId: '', installerMobile: '', beneficiaryId: '', farmerName: '', farmerMobile: '', woNo: '',
     zone: '', circle: '', division: '', subDivision: '', taluka: '', village: '', 
     expectedDate: '', vehicleNo: ''
   });
@@ -149,7 +149,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
     const result = await onAdd(newEntry);
     if (result) {
       setSiteData({ 
-        installerName: '', installerId: '', installerMobile: '', beneficiaryId: '', farmerName: '', farmerMobile: '', 
+        installerName: '', installerId: '', installerMobile: '', beneficiaryId: '', farmerName: '', farmerMobile: '', woNo: '',
         zone: '', circle: '', division: '', subDivision: '', taluka: '', village: '', 
         expectedDate: '', vehicleNo: '' 
       });
@@ -177,10 +177,14 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
         <form onSubmit={handleSubmit} className="space-y-10">
           <div className="space-y-4">
              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2"><User size={14} className="text-blue-500" /> 01. Site & Technician</h3>
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Beneficiary ID</label>
                   <input required type="text" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 font-mono text-xs uppercase" placeholder="BEN-XXXX" value={siteData.beneficiaryId} onChange={e => setSiteData({...siteData, beneficiaryId: e.target.value})} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">W.O.No/SAP PO No.</label>
+                  <input type="text" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 font-mono text-xs uppercase" placeholder="WO-XXXX" value={siteData.woNo} onChange={e => setSiteData({...siteData, woNo: e.target.value})} />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Farmer Name</label>

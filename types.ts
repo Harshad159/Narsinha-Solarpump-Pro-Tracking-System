@@ -52,6 +52,7 @@ export interface DispatchEntry {
   beneficiaryId: string; 
   farmerName: string;
   farmerMobile?: string;
+  woNo?: string;
   zone: string;
   circle: string;
   division: string;
