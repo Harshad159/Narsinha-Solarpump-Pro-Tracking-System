@@ -18,7 +18,7 @@ export const MATERIAL_SPECS: Record<MaterialCategory, string[]> = {
     '7.5 HP - 30 Mtr', '7.5 HP - 50 Mtr', '7.5 HP - 70 Mtr', '7.5 HP - 100 Mtr'
   ],
   PANEL: ['510 Wp', '520 Wp', '535 Wp'],
-  STRUCTURE: ['6 mm', '9 mm', '12 mm'],
+  STRUCTURE: ['6 MMS', '9 MMS', '13 MMS'],
   CONTROLLER: ['3HP Controller', '5HP Controller', '7.5HP Controller'],
   BOS: [
     '3 HP BOS - 30 Mtr', '3 HP BOS - 50 Mtr', '3 HP BOS - 70 Mtr',
@@ -31,19 +31,19 @@ export const SYSTEM_PRESET_CONFIG = {
   '3 HP': {
     heads: ['30 Mtr', '50 Mtr', '70 Mtr'],
     panel: { spec: '510 Wp', qty: 6 },
-    structure: '6 mm',
+    structure: '6 MMS',
     controller: '3HP Controller',
   },
   '5 HP': {
     heads: ['30 Mtr', '50 Mtr', '70 Mtr', '100 Mtr'],
     panel: { spec: '520 Wp', qty: 9 },
-    structure: '9 mm',
+    structure: '9 MMS',
     controller: '5HP Controller',
   },
   '7.5 HP': {
     heads: ['30 Mtr', '50 Mtr', '70 Mtr', '100 Mtr'],
     panel: { spec: '535 Wp', qty: 13 },
-    structure: '12 mm',
+    structure: '13 MMS',
     controller: '7.5HP Controller',
   }
 };
