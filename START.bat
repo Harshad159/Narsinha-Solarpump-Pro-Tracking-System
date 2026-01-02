@@ -4,23 +4,22 @@ echo ============================================
 echo   NARSINHA SOLAR PUMP TRACKING SYSTEM
 echo ============================================
 echo.
-echo [STEP 1] Starting Backend API Server...
-cd /d "%~dp0server"
-start "Solar Backend Server" cmd /k "npm start"
-timeout /t 3 /nobreak > nul
+echo [INFO] Backend is hosted on Render.com
+echo        API: https://solarpump-backend.onrender.com
 echo.
-echo [STEP 2] Backend server started at http://localhost:4000
-echo.
-echo [STEP 3] Now starting Frontend...
+echo [STEP 1] Starting Frontend Development Server...
 cd /d "%~dp0"
-start "Solar Frontend" cmd /k "npm run dev"
+start "Solar Pump Frontend" cmd /k "npm run dev"
 timeout /t 3 /nobreak > nul
 echo.
 echo ============================================
-echo   BOTH SERVERS STARTED SUCCESSFULLY!
+echo   FRONTEND STARTED SUCCESSFULLY!
 echo ============================================
-echo   Backend:  http://localhost:4000
-echo   Frontend: http://localhost:5173
+echo   Open: http://localhost:3000/
+echo   Backend: Render.com (Cloud)
+echo.
+echo   Note: First request may be slow if Render
+echo         backend was sleeping (free tier)
 echo ============================================
 echo.
 pause

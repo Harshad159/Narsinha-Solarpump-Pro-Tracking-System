@@ -1,97 +1,109 @@
 # Setup Guide for Narsinha Solar Pump Tracking System
 
-## Problem You Faced
-**Issue**: Data added in the arrival/inward form disappears after refresh, and stock shows as zero.
+## Current Configuration: **Cloud Storage (Render.com)**
 
-**Root Cause**: The backend API server was not running. The app needs both the frontend AND backend servers to save and retrieve data.
+Your app is now configured to store data on **Render.com cloud servers**. This means:
+- ✅ Data is accessible from any device with internet
+- ✅ Multiple users can access simultaneously
+- ✅ Data persists even if you close your computer
+- ✅ Production-ready setup
 
 ---
 
-## Solution: How to Run the App Properly
+## How to Run the App
 
-### Option 1: Use START.bat (Easiest Way)
-Simply double-click the **START.bat** file in the project folder. This will automatically:
-1. Start the backend API server on `http://localhost:4000`
-2. Start the frontend dev server on `http://localhost:5173`
+### Quick Start (Recommended):
+1. Double-click **START.bat** to start the frontend
+2. Open your browser to: http://localhost:3000/Narsinha-Solarpump-Pro-Tracking-System/
+3. Your data is automatically saved to Render.com cloud
 
-### Option 2: Manual Start (Two Terminals)
-
-#### Terminal 1 - Start Backend Server:
-```bash
-cd server
-npm start
-```
-You should see:
-```
-✅ App running on:
-   Local: http://localhost:4000
-   Database: [path to database.sqlite]
-```
-
-#### Terminal 2 - Start Frontend:
+### Manual Start:
 ```bash
 npm run dev
 ```
-You should see:
-```
-VITE ready
-Local: http://localhost:5173/
-```
+Then open: http://localhost:3000/Narsinha-Solarpump-Pro-Tracking-System/
 
 ---
 
 ## Important Notes
 
-### 1. **Always Keep Backend Running**
-- The backend server MUST be running for data to persist
-- If you close the backend terminal, your data won't save
-- The database file is located at: `server/database.sqlite`
+### 1. **Backend on Render.com**
+- Backend API: `https://solarpump-backend.onrender.com`
+- Database: Hosted on Render.com (cloud SQLite)
+- No need to run local backend server
+- **Note**: Render free tier sleeps after 15 minutes of inactivity
+  - First request after sleep may take 30-60 seconds to wake up
+  - Subsequent requests will be fast
 
 ### 2. **Default Login Credentials**
-After starting both servers, open `http://localhost:5173` and log in with:
 - **Admin**: PIN = `1111`
 - **Store Keeper**: PIN = `2222`
 
 ### 3. **Data Storage**
-- All data is stored in `server/database.sqlite`
-- This file is automatically created when you first start the backend
-- Your data persists across app restarts as long as this file exists
+- All data stored in Render.com cloud database
+- Accessible from anywhere with internet connection
+- Shared across all users of the system
 
-### 4. **First Time Setup**
-If this is your first time running the app:
-1. Install dependencies for frontend: `npm install`
-2. Install dependencies for backend: `cd server && npm install`
-3. Run START.bat or follow Option 2 above
+---
+
+## Switching Between Local and Cloud Storage
+
+### To Use Cloud Storage (Current - Render.com):
+In `services/api.ts`:
+```typescript
+const BASE_URL = 'https://solarpump-backend.onrender.com';
+```
+
+### To Use Local Storage (Development):
+In `services/api.ts`:
+```typescript
+const BASE_URL = 'http://localhost:4000';
+```
+Then start local backend: `cd server && npm start`
 
 ---
 
 ## Troubleshooting
 
-### "Data still not saving"
-✅ **Check**: Is the backend server running? Look for the terminal window with `http://localhost:4000`
+### "Data not saving" or "Connection Error"
+✅ **Check Internet Connection**: Render.com requires internet access
+✅ **Wait for Wake-Up**: If first request is slow, wait 30-60 seconds (Render free tier wakes from sleep)
+✅ **Check Browser Console**: Open DevTools (F12) to see any error messages
 
-### "Connection refused" or "Network error"
-✅ **Check**: Make sure the backend server started successfully on port 4000
+### "401 Unauthorized" Error
+✅ **Clear localStorage**: Open browser console and run: `localStorage.clear()` then refresh
+✅ **Re-login**: Log out and log back in with correct PIN
 
-### "Port already in use"
-✅ **Solution**: Close any other apps using port 4000 or 5173
+### Very Slow Response
+✅ **Render Free Tier**: Backend sleeps after 15 minutes inactivity
+✅ **Solution**: Upgrade to paid Render plan OR switch to local development
 
-### "Cannot find module" errors
-✅ **Solution**: Run `npm install` in both the root folder and `server` folder
+### Switch to Local Development
+If you want faster response times during development:
+1. Edit `services/api.ts` and change BASE_URL to `http://localhost:4000`
+2. Start local backend: `cd server && npm start`
+3. Start frontend: `npm run dev`
 
 ---
 
-## Production Deployment
-When deploying to production (Render, etc.):
-1. Update `services/api.ts` to use your production backend URL
-2. Build the frontend: `npm run build`
-3. Deploy both frontend and backend separately
+## Production Deployment Status
+
+- ✅ Backend: Deployed on Render.com
+- ✅ API URL: https://solarpump-backend.onrender.com
+- ✅ Database: SQLite on Render.com
+- ⚠️ Free Tier: May sleep after 15 minutes (wakes on first request)
 
 ---
 
 ## Summary
-**Always remember**: This app needs BOTH servers running:
-- ✅ Backend (port 4000) - for data storage
-- ✅ Frontend (port 5173) - for the user interface
 
-Use **START.bat** for the easiest experience!
+**Current Setup**: 
+- ✅ Frontend runs locally (npm run dev)
+- ✅ Backend runs on Render.com (cloud)
+- ✅ Data saved in cloud database
+- ✅ Accessible from anywhere with internet
+
+**To Run**: Just start the frontend with `npm run dev` or double-click START.bat
+
+No need to manage backend server - it's already running on Render.com! 🎉
+
