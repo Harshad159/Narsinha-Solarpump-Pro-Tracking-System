@@ -63,6 +63,30 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // For API requests, network first then cache (to ensure data freshness)
+  if (event.request.url.includes('/inward') || event.request.url.includes('/dispatch') || event.request.url.includes('/installers') || event.request.url.includes('/site/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Cache successful responses
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache for offline
+          return caches.match(event.request).then((response) => {
+            return response || new Response(JSON.stringify({ error: 'Offline' }), { status: 503 });
+          });
+        })
+    );
+    return;
+  }
+
   // For other requests, cache first then network
   event.respondWith(
     caches.match(event.request).then((response) => {

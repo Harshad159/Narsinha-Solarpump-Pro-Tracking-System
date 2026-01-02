@@ -19,12 +19,15 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const token = GET_TOKEN();
   const headers = {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
   try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
+    const response = await fetch(`${BASE_URL}${endpoint}?t=${Date.now()}`, { ...options, headers });
     
     if (response.status === 401) {
       // Logic for unauthorized: Reset key and redirect to login

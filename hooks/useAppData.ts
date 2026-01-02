@@ -26,8 +26,37 @@ export const useAppData = (isLoggedIn: boolean) => {
     }
   };
 
+  // Fetch data on login
   useEffect(() => {
-    fetchData();
+    if (isLoggedIn) {
+      fetchData();
+    }
+  }, [isLoggedIn]);
+
+  // Refresh data when page becomes visible (user returns to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isLoggedIn) {
+        console.log('Page became visible, refreshing data...');
+        fetchData();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isLoggedIn]);
+
+  // Refresh data when window regains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      if (isLoggedIn) {
+        console.log('Window focused, refreshing data...');
+        fetchData();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [isLoggedIn]);
 
   useEffect(() => {
