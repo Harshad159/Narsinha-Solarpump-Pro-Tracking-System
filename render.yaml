@@ -11,8 +11,8 @@ services:
       - key: JWT_SECRET
         generateValue: true
     # CRITICAL: Persistent disk to store SQLite database
-    # This ensures database.sqlite persists across restarts
+    # Mount to /data subdirectory to avoid overwriting server code
     disk:
       name: solarpump-data
-      mountPath: /opt/render/project/src/server
+      mountPath: /opt/render/project/src/server/data
       sizeGB: 1

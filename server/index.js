@@ -8,8 +8,16 @@ const { randomUUID } = require('crypto');
 
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-local-secret';
-const DB_PATH = path.join(__dirname, 'database.sqlite');
+// Store database in persistent /data directory on Render
+const DB_DIR = path.join(__dirname, 'data');
+const DB_PATH = path.join(DB_DIR, 'database.sqlite');
 const DIST_PATH = path.join(__dirname, '..', 'dist');
+
+// Create data directory if it doesn't exist
+const fs = require('fs');
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
 
 const app = express();
 app.use(cors());
