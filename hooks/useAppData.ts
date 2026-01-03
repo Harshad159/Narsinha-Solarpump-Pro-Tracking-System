@@ -4,22 +4,66 @@ import { InwardEntry, DispatchEntry } from '../types';
 import { ApiService } from '../services/api';
 import { STORAGE_KEYS } from '../constants';
 
+// Backup storage keys
+const INWARD_BACKUP_KEY = 'inward_backup_entries';
+const DISPATCH_BACKUP_KEY = 'dispatch_backup_entries';
+const SYNC_PENDING_KEY = 'sync_pending_entries';
+
+/**
+ * Load data from backend, with fallback to local backup
+ */
+const fetchWithFallback = async (fetchFn: () => Promise<any[]>, backupKey: string, fallbackKey: string) => {
+  try {
+    const data = await fetchFn();
+    // Successfully fetched from backend - update backup
+    localStorage.setItem(backupKey, JSON.stringify(data));
+    return data;
+  } catch (err) {
+    console.error(`Failed to fetch from backend, using local backup:`, err);
+    
+    // Try to use local backup
+    const backup = localStorage.getItem(backupKey);
+    if (backup) {
+      console.log('✓ Using local backup');
+      return JSON.parse(backup);
+    }
+    
+    // Last resort: show empty array but warn user
+    console.warn('⚠️ No backup available - data may be lost');
+    return [];
+  }
+};
+
 export const useAppData = (isLoggedIn: boolean) => {
   const [inwardEntries, setInwardEntries] = useState<InwardEntry[]>([]);
   const [dispatchEntries, setDispatchEntries] = useState<DispatchEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [backendError, setBackendError] = useState<string | null>(null);
 
   const fetchData = async () => {
     if (!isLoggedIn) return;
     setIsLoading(true);
+    setBackendError(null);
+    
     try {
       const [inwards, dispatches] = await Promise.all([
-        ApiService.getInwardEntries(),
-        ApiService.getDispatchEntries()
+        fetchWithFallback(
+          () => ApiService.getInwardEntries(),
+          INWARD_BACKUP_KEY,
+          STORAGE_KEYS.INWARD
+        ),
+        fetchWithFallback(
+          () => ApiService.getDispatchEntries(),
+          DISPATCH_BACKUP_KEY,
+          STORAGE_KEYS.DISPATCH
+        )
       ]);
+      
       setInwardEntries(inwards);
       setDispatchEntries(dispatches);
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch data';
+      setBackendError(message);
       console.error("Critical Data Error:", err);
     } finally {
       setIsLoading(false);
@@ -76,6 +120,8 @@ export const useAppData = (isLoggedIn: boolean) => {
     setDispatchEntries,
     isLoading,
     setIsLoading,
-    refresh: fetchData
+    refresh: fetchData,
+    backendError,
+    setBackendError
   };
 };
