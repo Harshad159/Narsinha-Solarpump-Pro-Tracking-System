@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: solarpump-backend
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+    # CRITICAL: Persistent disk to store SQLite database
+    # This ensures database.sqlite persists across restarts
+    disk:
+      name: solarpump-data
+      mountPath: /opt/render/project/src/server
+      sizeGB: 1
