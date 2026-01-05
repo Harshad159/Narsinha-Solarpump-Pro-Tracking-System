@@ -212,24 +212,15 @@ const getNextChallan = () => {
 };
 
 const authMiddleware = (req, res, next) => {
-  // Allow public access to login, health check, and static files (PWA)
-  if (req.path === '/auth/login' || req.path === '/health' || !req.path.startsWith('/')) return next();
-  
-  // Only check auth for API endpoints
-  if (req.path.startsWith('/inward') || req.path.startsWith('/dispatch') || 
-      req.path.startsWith('/installers') || req.path.startsWith('/site') || 
-      req.path.startsWith('/admin')) {
-    const header = req.headers.authorization;
-    if (!header) return res.status(401).json({ message: 'Unauthorized' });
-    const token = header.split(' ')[1];
-    try {
-      req.user = jwt.verify(token, JWT_SECRET);
-      next();
-    } catch (err) {
-      return res.status(401).json({ message: 'Invalid token' });
-    }
-  } else {
-    next(); // Allow all other requests (static files)
+  if (req.path === '/auth/login' || req.path === '/health') return next();
+  const header = req.headers.authorization;
+  if (!header) return res.status(401).json({ message: 'Unauthorized' });
+  const token = header.split(' ')[1];
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid token' });
   }
 };
 
