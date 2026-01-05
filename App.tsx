@@ -16,18 +16,14 @@ import Login from './components/Login';
 import { Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [role, setRole] = useState<UserRole>(() => {
-    const savedRole = localStorage.getItem('user_role');
-    return (savedRole as UserRole) || UserRole.ADMIN;
-  });
-
-  const [currentUserName, setCurrentUserName] = useState<string>(() => {
-    return localStorage.getItem('user_name') || '';
-  });
+  // STRICT SECURITY: Never persist login state - always require fresh login
+  const [role, setRole] = useState<UserRole>(UserRole.ADMIN);
+  const [currentUserName, setCurrentUserName] = useState<string>('');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [lastActivity, setLastActivity] = useState<number>(Date.now());
   
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    return localStorage.getItem('is_logged_in') === 'true';
-  });
+  // Auto-logout after 2 minutes of inactivity
+  const INACTIVITY_TIMEOUT = 2 * 60 * 1000; // 2 minutes in milliseconds
   
   const [activeTab, setActiveTab] = useState('dashboard');
   const [installers, setInstallers] = useState<InstallerUser[]>([]);
@@ -51,19 +47,51 @@ const App: React.FC = () => {
     setIsLoggedIn(true);
     setCurrentUserName(userName || userRole);
     setActiveTab('dashboard');
-    localStorage.setItem('is_logged_in', 'true');
-    localStorage.setItem('user_role', userRole);
-    localStorage.setItem('user_name', userName || userRole);
+    setLastActivity(Date.now());
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    localStorage.removeItem('is_logged_in');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('user_name');
-    setActiveTab('dashboard');
+    setRole(UserRole.ADMIN);
     setCurrentUserName('');
+    setActiveTab('dashboard');
+    // Clear ALL localStorage for security
+    localStorage.clear();
   };
+
+  // Track user activity (mouse, keyboard, touch)
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const updateActivity = () => setLastActivity(Date.now());
+    
+    window.addEventListener('mousedown', updateActivity);
+    window.addEventListener('keydown', updateActivity);
+    window.addEventListener('touchstart', updateActivity);
+    window.addEventListener('scroll', updateActivity);
+
+    return () => {
+      window.removeEventListener('mousedown', updateActivity);
+      window.removeEventListener('keydown', updateActivity);
+      window.removeEventListener('touchstart', updateActivity);
+      window.removeEventListener('scroll', updateActivity);
+    };
+  }, [isLoggedIn]);
+
+  // Check for inactivity every 10 seconds
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const checkInactivity = setInterval(() => {
+      const inactiveTime = Date.now() - lastActivity;
+      if (inactiveTime >= INACTIVITY_TIMEOUT) {
+        alert('⏱️ Session expired due to inactivity. Please login again.');
+        handleLogout();
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => clearInterval(checkInactivity);
+  }, [isLoggedIn, lastActivity]);
 
   const handleUpdateStatus = async (beneficiaryId: string, status: InstallStatus, remarks: string, imageUrls?: string[]) => {
     setIsLoading(true);
