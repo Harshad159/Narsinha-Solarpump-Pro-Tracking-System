@@ -71,7 +71,22 @@ const ReportModule: React.FC<ReportModuleProps> = ({ inward, dispatches, stock }
 
   const exportDispatchLog = () => {
     const data = filteredDispatchesByDate.flatMap(d => d.materials.map(m => ({
-      'Dispatch Date': d.date, 'Beneficiary ID': d.beneficiaryId, 'Farmer Name': d.farmerName, 'Material Category': CATEGORY_LABELS[m.category], 'Specification': m.specification, 'Quantity Issued': m.quantity, 'Installer': d.installerName, 'Vehicle No': d.vehicleNo || 'N/A', 'Site Village': d.village, 'Site Taluka': d.taluka
+      'Dispatch Date': d.date,
+      'Challan No': d.challanNo,
+      'Beneficiary ID': d.beneficiaryId,
+      'Farmer Name': d.farmerName,
+      'Zone': d.zone || 'N/A',
+      'Circle': d.circle || 'N/A',
+      'Division': d.division || 'N/A',
+      'Sub-Division': d.subDivision || 'N/A',
+      'Taluka': d.taluka || 'N/A',
+      'Village': d.village || 'N/A',
+      'Material Category': CATEGORY_LABELS[m.category],
+      'Specification': m.specification,
+      'Quantity Issued': m.quantity,
+      'Serial Numbers': m.serialNumbers ? m.serialNumbers.join(', ') : 'N/A',
+      'Installer': d.installerName,
+      'Vehicle No': d.vehicleNo || 'N/A'
     })));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
