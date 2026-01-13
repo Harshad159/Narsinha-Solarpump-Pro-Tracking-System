@@ -1,9 +1,9 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { DispatchEntry, Stock, InstallStatus, MaterialCategory, MaterialItem, SystemCapacity, InstallerUser } from '../types';
 import { CATEGORY_LABELS, MATERIAL_SPECS, SYSTEM_PRESET_CONFIG } from '../constants';
 import { downloadChallanAsImage } from '../utils/challanGenerator';
-import { Truck, Plus, User, MapPin, Calendar as CalendarIcon, Globe, Zap, Layers, Trash2, AlertCircle, ShoppingCart, X, Hash, ClipboardList, Phone, UserCheck, Download } from 'lucide-react';
+import { Truck, Plus, User, MapPin, Calendar as CalendarIcon, Globe, Zap, Layers, Trash2, AlertCircle, ShoppingCart, X, Hash, ClipboardList, Phone, UserCheck, Download, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface DispatchFormProps {
   onAdd: (entry: DispatchEntry) => Promise<DispatchEntry | null>;
@@ -22,6 +22,27 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
   const [itemForm, setItemForm] = useState<{category: MaterialCategory; specification: string; quantity: number; serials: string[]}>({
     category: 'MOTOR', specification: '3 HP - 30 Mtr', quantity: 1, serials: ['']
   });
+
+  const [searchBeneficiary, setSearchBeneficiary] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
+
+  const filteredDispatches = useMemo(() => {
+    return dispatches.filter(d =>
+      d.farmerName.toLowerCase().includes(searchBeneficiary.toLowerCase()) ||
+      d.beneficiaryId.toLowerCase().includes(searchBeneficiary.toLowerCase())
+    );
+  }, [dispatches, searchBeneficiary]);
+
+  const totalPages = Math.ceil(filteredDispatches.length / ITEMS_PER_PAGE);
+  const paginatedDispatches = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredDispatches.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredDispatches, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchBeneficiary]);
 
   const [materialsToDispatch, setMaterialsToDispatch] = useState<MaterialItem[]>([]);
 
@@ -388,11 +409,36 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
                 <ClipboardList size={20} />
              </div>
              <div>
-               <h3 className="font-black text-slate-800 text-xs uppercase tracking-[0.2em]">Recent Outward Shipments</h3>
-               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Last {dispatches.slice(0, 10).length} deliveries issued</p>
+               <h3 className="font-black text-slate-800 text-xs uppercase tracking-[0.2em]">Outward Shipments</h3>
+               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">All dispatch records with search</p>
              </div>
            </div>
         </div>
+
+        <div className="p-4 border-b border-slate-100 bg-white">
+          <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
+            <Search size={18} className="text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by farmer name or beneficiary ID..."
+              value={searchBeneficiary}
+              onChange={(e) => setSearchBeneficiary(e.target.value)}
+              className="flex-1 bg-transparent outline-none font-bold text-sm text-slate-800 placeholder-slate-400"
+            />
+            {searchBeneficiary && (
+              <button
+                onClick={() => setSearchBeneficiary('')}
+                className="p-1 text-slate-400 hover:text-red-600"
+              >
+                <X size={18} />
+              </button>
+            )}
+            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {filteredDispatches.length} result{filteredDispatches.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-slate-50/50 border-b border-slate-100">
@@ -405,7 +451,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
                </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-               {dispatches.slice(0, 10).map(d => (
+               {paginatedDispatches.map(d => (
                  <tr key={d.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5">
                        <div className="text-[10px] font-black text-slate-400 uppercase mb-0.5">{d.date}</div>
@@ -435,7 +481,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
                        <button 
                          onClick={() => downloadChallanAsImage(d)}
                          className="p-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-xl transition-all border border-orange-100 inline-flex items-center gap-1.5 text-[10px] font-black uppercase"
-                         title="D5wnload Delivery Challan"
+                         title="Download Delivery Challan"
                        >
                          <Download size={14} />
                          <span className="hidden sm:inline">DC</span>
@@ -443,14 +489,36 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
                     </td>
                  </tr>
                ))}
-               {dispatches.length === 0 && (
+               {filteredDispatches.length === 0 && (
                  <tr>
-                    <td colSpan={4} className="px-8 py-16 text-center text-slate-300 font-black uppercase text-xs tracking-[0.2em]">No Dispatch History Found</td>
+                    <td colSpan={5} className="px-8 py-16 text-center text-slate-300 font-black uppercase text-xs tracking-[0.2em]">No Dispatch Records Found</td>
                  </tr>
                )}
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between bg-slate-50 p-4 border-t border-slate-100">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 transition-all"
+            >
+              <ChevronLeft size={16} /> Previous
+            </button>
+            <div className="text-sm font-bold text-slate-600">
+              Page <span className="text-orange-600 font-black">{currentPage}</span> of <span className="text-orange-600 font-black">{totalPages}</span>
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl font-bold text-xs uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-700 transition-all"
+            >
+              Next <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

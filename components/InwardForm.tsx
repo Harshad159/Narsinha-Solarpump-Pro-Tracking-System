@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { InwardEntry, MaterialCategory, MaterialItem } from '../types';
 import { CATEGORY_LABELS, MATERIAL_SPECS } from '../constants';
-import { PlusCircle, Plus, Layers, Inbox, Factory, ShoppingCart, Hash, FileText, Minus, Edit3, XCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Plus, Layers, Inbox, Factory, ShoppingCart, Hash, FileText, Minus, Edit3, XCircle, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface InwardFormProps {
   onAdd: (entry: InwardEntry) => void;
@@ -17,6 +17,26 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entr
     invoiceNo: '',
     remarks: ''
   });
+
+  const [searchSupplier, setSearchSupplier] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
+
+  const filteredEntries = useMemo(() => {
+    return entries.filter(e => 
+      e.supplier.toLowerCase().includes(searchSupplier.toLowerCase())
+    );
+  }, [entries, searchSupplier]);
+
+  const totalPages = Math.ceil(filteredEntries.length / ITEMS_PER_PAGE);
+  const paginatedEntries = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredEntries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredEntries, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchSupplier]);
 
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
 
@@ -272,6 +292,29 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entr
             <h3 className="font-black text-slate-800 text-xs uppercase tracking-widest">Arrival Logs</h3>
           </div>
         </div>
+
+        <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-slate-100">
+          <Search size={18} className="text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by supplier name..."
+            value={searchSupplier}
+            onChange={(e) => setSearchSupplier(e.target.value)}
+            className="flex-1 bg-transparent outline-none font-bold text-sm text-slate-800 placeholder-slate-400"
+          />
+          {searchSupplier && (
+            <button
+              onClick={() => setSearchSupplier('')}
+              className="p-1 text-slate-400 hover:text-red-600"
+            >
+              <XCircle size={18} />
+            </button>
+          )}
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            {filteredEntries.length} result{filteredEntries.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-400 font-black uppercase text-[9px] tracking-widest border-b border-slate-100">
@@ -284,7 +327,7 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entr
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {entries.map(e => (
+              {paginatedEntries.map(e => (
                 <tr key={e.id} className={`hover:bg-slate-50 transition-colors ${editingEntryId === e.id ? 'bg-blue-50/50' : ''}`}>
                   <td className="px-6 py-5">
                     <div className="text-slate-400 text-[10px] font-black uppercase mb-1">{e.date}</div>
@@ -337,14 +380,36 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entr
                   </td>
                 </tr>
               ))}
-              {entries.length === 0 && (
+              {filteredEntries.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center text-slate-300 font-black uppercase text-xs tracking-widest">No Recent Arrivals</td>
+                  <td colSpan={5} className="px-6 py-20 text-center text-slate-300 font-black uppercase text-xs tracking-widest">No Arrivals Found</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 mt-4">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 transition-all"
+            >
+              <ChevronLeft size={16} /> Previous
+            </button>
+            <div className="text-sm font-bold text-slate-600">
+              Page <span className="text-blue-600 font-black">{currentPage}</span> of <span className="text-blue-600 font-black">{totalPages}</span>
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-all"
+            >
+              Next <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
