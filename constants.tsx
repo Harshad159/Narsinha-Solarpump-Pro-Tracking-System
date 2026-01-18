@@ -36,13 +36,13 @@ export const SYSTEM_PRESET_CONFIG = {
   },
   '5 HP': {
     heads: ['30 Mtr', '50 Mtr', '70 Mtr', '100 Mtr'],
-    panel: { spec: '520 Wp', qty: 9 },
+    panel: { spec: '535 Wp', qty: 9 },
     structure: '9 MMS',
     controller: '5HP Controller',
   },
   '7.5 HP': {
     heads: ['30 Mtr', '50 Mtr', '70 Mtr', '100 Mtr'],
-    panel: { spec: '535 Wp', qty: 13 },
+    panel: { spec: '520 Wp', qty: 13 },
     structure: '13 MMS',
     controller: '7.5HP Controller',
   }
