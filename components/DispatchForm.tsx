@@ -105,13 +105,14 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
   const applyDetailedPreset = (hp: SystemCapacity, head: string) => {
     const config = (SYSTEM_PRESET_CONFIG as any)[hp];
     const motorSpec = `${hp} - ${head}`;
+    const controllerSpec = `${hp} Controller - ${head}`;
     const bosSpec = `${hp} BOS - ${head}`;
     
     const presetItems: MaterialItem[] = [
       { category: 'MOTOR', specification: motorSpec, quantity: 1, serialNumbers: [''] },
       { category: 'PANEL', specification: config.panel.spec, quantity: config.panel.qty, serialNumbers: Array(config.panel.qty).fill('') },
       { category: 'STRUCTURE', specification: config.structure, quantity: 1 },
-      { category: 'CONTROLLER', specification: config.controller, quantity: 1, serialNumbers: [''] },
+      { category: 'CONTROLLER', specification: controllerSpec, quantity: 1, serialNumbers: [''] },
       { category: 'BOS', specification: bosSpec, quantity: 1 },
     ];
     

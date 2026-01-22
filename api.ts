@@ -14,8 +14,8 @@ const getInitialInwardData = (): InwardEntry[] => [
     materials: [
       { category: 'MOTOR', specification: '3 HP - 50 Mtr', quantity: 30 },
       { category: 'MOTOR', specification: '5 HP - 70 Mtr', quantity: 20 },
-      { category: 'CONTROLLER', specification: '3HP Controller', quantity: 30 },
-      { category: 'CONTROLLER', specification: '5HP Controller', quantity: 20 }
+      { category: 'CONTROLLER', specification: '3HP Controller - 50 Mtr', quantity: 30 },
+      { category: 'CONTROLLER', specification: '5HP Controller - 70 Mtr', quantity: 20 }
     ]
   },
   {
@@ -65,7 +65,7 @@ const getInitialDispatchData = (): DispatchEntry[] => {
     lastUpdateDate: '2024-03-20',
     materials: [
       { category: 'MOTOR', specification: '3 HP - 50 Mtr', quantity: 1 },
-      { category: 'CONTROLLER', specification: '3HP Controller', quantity: 1 },
+      { category: 'CONTROLLER', specification: '3HP Controller - 50 Mtr', quantity: 1 },
       { category: 'PANEL', specification: '510 Wp', quantity: 10 },
       { category: 'STRUCTURE', specification: '6 mm', quantity: 1 },
       { category: 'BOS', specification: '3 HP BOS - 50 Mtr', quantity: 1 }

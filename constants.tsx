@@ -19,7 +19,11 @@ export const MATERIAL_SPECS: Record<MaterialCategory, string[]> = {
   ],
   PANEL: ['510 Wp', '520 Wp', '535 Wp'],
   STRUCTURE: ['6 MMS', '9 MMS', '13 MMS'],
-  CONTROLLER: ['3HP Controller', '5HP Controller', '7.5HP Controller'],
+  CONTROLLER: [
+    '3HP Controller - 30 Mtr', '3HP Controller - 50 Mtr', '3HP Controller - 70 Mtr',
+    '5HP Controller - 30 Mtr', '5HP Controller - 50 Mtr', '5HP Controller - 70 Mtr', '5HP Controller - 100 Mtr',
+    '7.5HP Controller - 30 Mtr', '7.5HP Controller - 50 Mtr', '7.5HP Controller - 70 Mtr', '7.5HP Controller - 100 Mtr'
+  ],
   BOS: [
     '3 HP BOS - 30 Mtr', '3 HP BOS - 50 Mtr', '3 HP BOS - 70 Mtr',
     '5 HP BOS - 30 Mtr', '5 HP BOS - 50 Mtr', '5 HP BOS - 70 Mtr', '5 HP BOS - 100 Mtr',
@@ -32,19 +36,16 @@ export const SYSTEM_PRESET_CONFIG = {
     heads: ['30 Mtr', '50 Mtr', '70 Mtr'],
     panel: { spec: '510 Wp', qty: 6 },
     structure: '6 MMS',
-    controller: '3HP Controller',
   },
   '5 HP': {
     heads: ['30 Mtr', '50 Mtr', '70 Mtr', '100 Mtr'],
     panel: { spec: '535 Wp', qty: 9 },
     structure: '9 MMS',
-    controller: '5HP Controller',
   },
   '7.5 HP': {
     heads: ['30 Mtr', '50 Mtr', '70 Mtr', '100 Mtr'],
     panel: { spec: '520 Wp', qty: 13 },
     structure: '13 MMS',
-    controller: '7.5HP Controller',
   }
 };
 
