@@ -105,7 +105,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
   const applyDetailedPreset = (hp: SystemCapacity, head: string) => {
     const config = (SYSTEM_PRESET_CONFIG as any)[hp];
     const motorSpec = `${hp} - ${head}`;
-    const controllerSpec = `${hp} Controller - ${head}`;
+    const controllerSpec = `${hp.replace(' ', '')} Controller - ${head}`;
     const bosSpec = `${hp} BOS - ${head}`;
     
     const presetItems: MaterialItem[] = [
