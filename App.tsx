@@ -164,9 +164,11 @@ const App: React.FC = () => {
         {activeTab === 'dispatch' && (
           <DispatchForm 
             onAdd={(e) => ApiService.createDispatchEntry(e).then(res => {setDispatchEntries([res, ...dispatchEntries]); return res;})} 
+            onUpdate={(e) => ApiService.updateDispatchEntry(e).then(res => {setDispatchEntries(dispatchEntries.map(x => x.id === res.id ? res : x)); return res;})}
             dispatches={dispatchEntries} 
             stock={stock}
             installers={installers}
+            userRole={role}
           />
         )}
         {activeTab === 'team' && (

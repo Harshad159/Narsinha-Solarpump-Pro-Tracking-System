@@ -1,18 +1,20 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { DispatchEntry, Stock, InstallStatus, MaterialCategory, MaterialItem, SystemCapacity, InstallerUser } from '../types';
+import { DispatchEntry, Stock, InstallStatus, MaterialCategory, MaterialItem, SystemCapacity, InstallerUser, UserRole } from '../types';
 import { CATEGORY_LABELS, MATERIAL_SPECS, SYSTEM_PRESET_CONFIG } from '../constants';
 import { downloadChallanAsImage } from '../utils/challanGenerator';
-import { Truck, Plus, User, MapPin, Calendar as CalendarIcon, Globe, Zap, Layers, Trash2, AlertCircle, ShoppingCart, X, Hash, ClipboardList, Phone, UserCheck, Download, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Truck, Plus, User, MapPin, Calendar as CalendarIcon, Globe, Zap, Layers, Trash2, AlertCircle, ShoppingCart, X, Hash, ClipboardList, Phone, UserCheck, Download, Search, ChevronLeft, ChevronRight, Pencil, Lock, ShieldCheck } from 'lucide-react';
 
 interface DispatchFormProps {
   onAdd: (entry: DispatchEntry) => Promise<DispatchEntry | null>;
+  onUpdate: (entry: DispatchEntry) => Promise<DispatchEntry | null>;
   dispatches: DispatchEntry[];
   stock: Stock;
   installers: InstallerUser[];
+  userRole: UserRole;
 }
 
-const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, installers }) => {
+const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches, stock, installers, userRole }) => {
   const [siteData, setSiteData] = useState({
     installerName: '', installerId: '', installerMobile: '', beneficiaryId: '', farmerName: '', farmerMobile: '', woNo: '',
     zone: '', circle: '', division: '', subDivision: '', taluka: '', village: '', 
@@ -46,6 +48,11 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
 
   const [materialsToDispatch, setMaterialsToDispatch] = useState<MaterialItem[]>([]);
 
+  const [editingDispatch, setEditingDispatch] = useState<DispatchEntry | null>(null);
+  const [editForm, setEditForm] = useState<Partial<DispatchEntry>>({});
+  const [editPassword, setEditPassword] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
   const today = new Date().toISOString().split('T')[0];
 
   const isTracked = (cat: MaterialCategory) => ['MOTOR', 'PANEL', 'CONTROLLER'].includes(cat);
@@ -77,6 +84,56 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
   };
 
   const getAvailableStock = (cat: MaterialCategory, spec: string) => (stock as any)[cat]?.[spec] || 0;
+
+  const openEditModal = (entry: DispatchEntry) => {
+    setEditingDispatch(entry);
+    setEditForm({
+      date: entry.date,
+      challanNo: entry.challanNo,
+      beneficiaryId: entry.beneficiaryId,
+      farmerName: entry.farmerName,
+      farmerMobile: entry.farmerMobile || '',
+      installerName: entry.installerName,
+      installerId: entry.installerId || '',
+      installerMobile: entry.installerMobile || '',
+      vehicleNo: entry.vehicleNo || '',
+      expectedDate: entry.expectedDate,
+      zone: entry.zone,
+      circle: entry.circle,
+      division: entry.division,
+      subDivision: entry.subDivision,
+      taluka: entry.taluka,
+      village: entry.village,
+      status: entry.status
+    });
+    setEditPassword('');
+  };
+
+  const closeEditModal = () => {
+    setEditingDispatch(null);
+    setEditPassword('');
+    setIsSavingEdit(false);
+  };
+
+  const requiresPassword = userRole === UserRole.STORE_KEEPER;
+  const isPasswordValid = !requiresPassword || editPassword === 'Narsinha@2400';
+
+  const handleSaveEdit = async () => {
+    if (!editingDispatch || !isPasswordValid) return;
+    setIsSavingEdit(true);
+    const updatedEntry: DispatchEntry = {
+      ...editingDispatch,
+      ...editForm,
+    } as DispatchEntry;
+    try {
+      await onUpdate(updatedEntry);
+      closeEditModal();
+    } catch (err) {
+      console.error('Failed to update dispatch', err);
+      alert('Update failed. Please try again.');
+      setIsSavingEdit(false);
+    }
+  };
 
   const addItemToList = (form: typeof itemForm) => {
     if (form.quantity <= 0) return;
@@ -416,6 +473,134 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
            </div>
         </div>
 
+        {editingDispatch && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-[2rem] max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-90">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-xl"><ShieldCheck size={18} /></div>
+                  <div>
+                    <h4 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">Edit Dispatch</h4>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">{editingDispatch.challanNo}</p>
+                  </div>
+                </div>
+                <button onClick={closeEditModal} className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50"><X size={16} /></button>
+              </div>
+
+              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</label>
+                    <input type="date" value={editForm.date || ''} onChange={e => setEditForm({...editForm, date: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Challan No</label>
+                    <input value={editForm.challanNo || ''} onChange={e => setEditForm({...editForm, challanNo: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Farmer Name</label>
+                    <input value={editForm.farmerName || ''} onChange={e => setEditForm({...editForm, farmerName: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Beneficiary ID</label>
+                    <input value={editForm.beneficiaryId || ''} onChange={e => setEditForm({...editForm, beneficiaryId: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Farmer Mobile</label>
+                    <input value={editForm.farmerMobile || ''} onChange={e => setEditForm({...editForm, farmerMobile: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Installer Name</label>
+                    <input value={editForm.installerName || ''} onChange={e => setEditForm({...editForm, installerName: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Installer ID</label>
+                    <input value={editForm.installerId || ''} onChange={e => setEditForm({...editForm, installerId: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Installer Mobile</label>
+                    <input value={editForm.installerMobile || ''} onChange={e => setEditForm({...editForm, installerMobile: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Vehicle No</label>
+                    <input value={editForm.vehicleNo || ''} onChange={e => setEditForm({...editForm, vehicleNo: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Expected Date</label>
+                    <input type="date" value={editForm.expectedDate || ''} onChange={e => setEditForm({...editForm, expectedDate: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Status</label>
+                    <select value={editForm.status || editingDispatch.status} onChange={e => setEditForm({...editForm, status: e.target.value as InstallStatus})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold">
+                      {Object.values(InstallStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Zone</label>
+                    <input value={editForm.zone || ''} onChange={e => setEditForm({...editForm, zone: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Circle</label>
+                    <input value={editForm.circle || ''} onChange={e => setEditForm({...editForm, circle: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Division</label>
+                    <input value={editForm.division || ''} onChange={e => setEditForm({...editForm, division: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sub-Division</label>
+                    <input value={editForm.subDivision || ''} onChange={e => setEditForm({...editForm, subDivision: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Taluka</label>
+                    <input value={editForm.taluka || ''} onChange={e => setEditForm({...editForm, taluka: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Village</label>
+                    <input value={editForm.village || ''} onChange={e => setEditForm({...editForm, village: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+                  </div>
+                </div>
+
+                {requiresPassword && (
+                  <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl flex items-center gap-3">
+                    <Lock size={18} className="text-orange-600" />
+                    <div className="flex-1">
+                      <div className="text-[10px] font-black text-orange-900 uppercase tracking-widest">Storekeeper Access</div>
+                      <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)} placeholder="Enter password to edit" className="mt-2 w-full p-3 bg-white border border-orange-200 rounded-xl text-sm font-bold" />
+                      {!isPasswordValid && editPassword && <p className="text-[10px] text-red-600 font-bold mt-1">Password incorrect. Use Narsinha@2400</p>}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/80">
+                <button onClick={closeEditModal} className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200">Cancel</button>
+                <button disabled={!isPasswordValid || isSavingEdit} onClick={handleSaveEdit} className={`px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest text-white transition-all ${(!isPasswordValid || isSavingEdit) ? 'bg-slate-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                  {isSavingEdit ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="p-4 border-b border-slate-100 bg-white">
           <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
             <Search size={18} className="text-slate-400" />
@@ -479,6 +664,14 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, dispatches, stock, i
                        </div>
                     </td>
                     <td className="px-8 py-5 text-right">
+                       <button 
+                         onClick={() => openEditModal(d)}
+                         className="p-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition-all border border-slate-200 inline-flex items-center gap-1.5 text-[10px] font-black uppercase mr-2"
+                         title="Edit dispatch"
+                       >
+                         <Pencil size={14} />
+                         <span className="hidden sm:inline">Edit</span>
+                       </button>
                        <button 
                          onClick={() => downloadChallanAsImage(d)}
                          className="p-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-xl transition-all border border-orange-100 inline-flex items-center gap-1.5 text-[10px] font-black uppercase"

@@ -170,6 +170,32 @@ export const ApiService = {
     }
   },
 
+  async updateDispatchEntry(entry: DispatchEntry): Promise<DispatchEntry> {
+    try {
+      const result = await request<DispatchEntry>(`/dispatch/${entry.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(entry),
+      });
+
+      const backup = loadFromBackup<DispatchEntry[]>(DISPATCH_BACKUP_KEY, []);
+      const updated = backup.map(e => e.id === result.id ? result : e);
+      saveToBackup(DISPATCH_BACKUP_KEY, updated);
+
+      return result;
+    } catch (err) {
+      console.warn('Backend update failed, saving to local backup:', err);
+      const backup = loadFromBackup<DispatchEntry[]>(DISPATCH_BACKUP_KEY, []);
+      const updated = backup.map(e => e.id === entry.id ? entry : e);
+      saveToBackup(DISPATCH_BACKUP_KEY, updated);
+
+      const message = `⚠️ Could not reach server. Data updated locally. Will sync when connection restored.`;
+      console.warn(message);
+      alert(message);
+
+      return entry;
+    }
+  },
+
   async deleteDispatchEntry(id: string): Promise<void> {
     await request(`/dispatch/${id}`, { method: 'DELETE' });
   },
