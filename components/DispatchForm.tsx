@@ -516,9 +516,9 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
         </div>
 
         {editingDispatch && (
-          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-[2rem] max-w-5xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-90 flex flex-col max-h-[90vh]">
-              <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 pb-24">
+            <div className="bg-white rounded-[2rem] max-w-5xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-90 flex flex-col max-h-[85vh]">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-50 text-blue-600 rounded-xl"><ShieldCheck size={18} /></div>
                   <div>
@@ -676,7 +676,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
                 )}
               </div>
 
-              <div className="p-5 border-t border-slate-100 flex items-center justify-between gap-3 bg-white">
+              <div className="p-5 border-t border-slate-100 flex items-center justify-between gap-3 bg-white shrink-0">
                 <div>
                   {userRole === UserRole.ADMIN && (
                     <button
