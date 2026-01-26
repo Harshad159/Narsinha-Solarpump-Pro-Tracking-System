@@ -8,13 +8,14 @@ import { Truck, Plus, User, MapPin, Calendar as CalendarIcon, Globe, Zap, Layers
 interface DispatchFormProps {
   onAdd: (entry: DispatchEntry) => Promise<DispatchEntry | null>;
   onUpdate: (entry: DispatchEntry) => Promise<DispatchEntry | null>;
+  onDelete: (id: string) => Promise<void>;
   dispatches: DispatchEntry[];
   stock: Stock;
   installers: InstallerUser[];
   userRole: UserRole;
 }
 
-const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches, stock, installers, userRole }) => {
+const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, dispatches, stock, installers, userRole }) => {
   const [siteData, setSiteData] = useState({
     installerName: '', installerId: '', installerMobile: '', beneficiaryId: '', farmerName: '', farmerMobile: '', woNo: '',
     zone: '', circle: '', division: '', subDivision: '', taluka: '', village: '', 
@@ -50,6 +51,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
 
   const [editingDispatch, setEditingDispatch] = useState<DispatchEntry | null>(null);
   const [editForm, setEditForm] = useState<Partial<DispatchEntry>>({});
+  const [editMaterials, setEditMaterials] = useState<MaterialItem[]>([]);
   const [editPassword, setEditPassword] = useState('');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
@@ -85,6 +87,14 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
 
   const getAvailableStock = (cat: MaterialCategory, spec: string) => (stock as any)[cat]?.[spec] || 0;
 
+  const ensureSerials = (material: MaterialItem): MaterialItem => {
+    if (!isTracked(material.category)) return material;
+    const serials = material.serialNumbers && material.serialNumbers.length === material.quantity
+      ? material.serialNumbers
+      : Array(material.quantity).fill('');
+    return { ...material, serialNumbers: serials };
+  };
+
   const openEditModal = (entry: DispatchEntry) => {
     setEditingDispatch(entry);
     setEditForm({
@@ -106,6 +116,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
       village: entry.village,
       status: entry.status
     });
+    setEditMaterials(entry.materials.map(ensureSerials));
     setEditPassword('');
   };
 
@@ -113,10 +124,23 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
     setEditingDispatch(null);
     setEditPassword('');
     setIsSavingEdit(false);
+    setEditMaterials([]);
   };
 
   const requiresPassword = userRole === UserRole.STORE_KEEPER;
   const isPasswordValid = !requiresPassword || editPassword === 'Narsinha@2400';
+  const isDeletePasswordValid = editPassword === 'Narsinha@2400';
+
+  const updateEditSerial = (itemIndex: number, serialIndex: number, val: string) => {
+    setEditMaterials(prev => {
+      const next = [...prev];
+      const item = { ...next[itemIndex] };
+      if (!item.serialNumbers) item.serialNumbers = Array(item.quantity).fill('');
+      item.serialNumbers[serialIndex] = val.toUpperCase();
+      next[itemIndex] = item;
+      return next;
+    });
+  };
 
   const handleSaveEdit = async () => {
     if (!editingDispatch || !isPasswordValid) return;
@@ -124,6 +148,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
     const updatedEntry: DispatchEntry = {
       ...editingDispatch,
       ...editForm,
+      materials: editMaterials,
     } as DispatchEntry;
     try {
       await onUpdate(updatedEntry);
@@ -132,6 +157,23 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
       console.error('Failed to update dispatch', err);
       alert('Update failed. Please try again.');
       setIsSavingEdit(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!editingDispatch) return;
+    if (!isDeletePasswordValid) {
+      alert('Password required to delete. Use Narsinha@2400');
+      return;
+    }
+    const confirmed = window.confirm('Delete this dispatch entry? This cannot be undone.');
+    if (!confirmed) return;
+    try {
+      await onDelete(editingDispatch.id);
+      closeEditModal();
+    } catch (err) {
+      console.error('Failed to delete dispatch', err);
+      alert('Delete failed. Please try again.');
     }
   };
 
@@ -475,7 +517,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
 
         {editingDispatch && (
           <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-[2rem] max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-90">
+            <div className="bg-white rounded-[2rem] max-w-5xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-90 flex flex-col max-h-[90vh]">
               <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-50 text-blue-600 rounded-xl"><ShieldCheck size={18} /></div>
@@ -487,7 +529,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
                 <button onClick={closeEditModal} className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50"><X size={16} /></button>
               </div>
 
-              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="p-6 space-y-5 overflow-y-auto flex-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</label>
@@ -579,6 +621,40 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
                   </div>
                 </div>
 
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Materials & Serial Numbers</p>
+                      <p className="text-[11px] text-slate-500 font-bold">Edit serials for tracked items; quantities stay locked.</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {editMaterials.map((m, idx) => (
+                      <div key={`${m.category}-${idx}`} className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="font-black text-slate-800 text-sm uppercase">{m.category}</div>
+                          <div className="text-xs font-bold text-slate-500">{m.specification}</div>
+                          <div className="text-xs font-black text-blue-600">Qty: {m.quantity}</div>
+                        </div>
+                        {isTracked(m.category) && (
+                          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {m.serialNumbers?.map((sr, si) => (
+                              <input
+                                key={si}
+                                type="text"
+                                value={sr}
+                                onChange={e => updateEditSerial(idx, si, e.target.value)}
+                                placeholder={`Unit ${si + 1} SR`}
+                                className={`w-full p-2.5 bg-white border rounded-xl text-[11px] font-black uppercase outline-none focus:ring-2 focus:ring-blue-500 ${!sr.trim() ? 'border-orange-200 bg-orange-50/40' : 'border-slate-200'}`}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {requiresPassword && (
                   <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl flex items-center gap-3">
                     <Lock size={18} className="text-orange-600" />
@@ -589,13 +665,40 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, dispatches
                     </div>
                   </div>
                 )}
+
+                {userRole === UserRole.ADMIN && (
+                  <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-center gap-3">
+                    <Lock size={18} className="text-blue-600" />
+                    <div className="flex-1">
+                      <div className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Admin Delete Guard</div>
+                      <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)} placeholder="Enter password to delete" className="mt-2 w-full p-3 bg-white border border-blue-200 rounded-xl text-sm font-bold" />
+                      {!isDeletePasswordValid && editPassword && <p className="text-[10px] text-red-600 font-bold mt-1">Password required for delete. Use Narsinha@2400</p>}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="p-5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/80">
-                <button onClick={closeEditModal} className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200">Cancel</button>
-                <button disabled={!isPasswordValid || isSavingEdit} onClick={handleSaveEdit} className={`px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest text-white transition-all ${(!isPasswordValid || isSavingEdit) ? 'bg-slate-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                  {isSavingEdit ? 'Saving...' : 'Save Changes'}
-                </button>
+              <div className="p-5 border-t border-slate-100 flex items-center justify-between gap-3 bg-slate-50/80">
+                <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold">
+                  {userRole === UserRole.ADMIN && (
+                    <>
+                      <button
+                        onClick={handleDelete}
+                        disabled={!isDeletePasswordValid}
+                        className={`px-4 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all border ${isDeletePasswordValid ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-600 hover:text-white' : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'}`}
+                      >
+                        Delete
+                      </button>
+                      {!isDeletePasswordValid && <span className="text-red-500">Password needed to delete</span>}
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={closeEditModal} className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200">Cancel</button>
+                  <button disabled={!isPasswordValid || isSavingEdit} onClick={handleSaveEdit} className={`px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest text-white transition-all ${(!isPasswordValid || isSavingEdit) ? 'bg-slate-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                    {isSavingEdit ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
