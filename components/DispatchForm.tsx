@@ -661,7 +661,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
                     <div className="flex-1">
                       <div className="text-[10px] font-black text-orange-900 uppercase tracking-widest">Storekeeper Access</div>
                       <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)} placeholder="Enter password to edit" className="mt-2 w-full p-3 bg-white border border-orange-200 rounded-xl text-sm font-bold" />
-                      {!isPasswordValid && editPassword && <p className="text-[10px] text-red-600 font-bold mt-1">Password incorrect. Use Narsinha@2400</p>}
                     </div>
                   </div>
                 )}
@@ -672,30 +671,26 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
                     <div className="flex-1">
                       <div className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Admin Delete Guard</div>
                       <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)} placeholder="Enter password to delete" className="mt-2 w-full p-3 bg-white border border-blue-200 rounded-xl text-sm font-bold" />
-                      {!isDeletePasswordValid && editPassword && <p className="text-[10px] text-red-600 font-bold mt-1">Password required for delete. Use Narsinha@2400</p>}
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="p-5 border-t border-slate-100 flex items-center justify-between gap-3 bg-slate-50/80">
-                <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold">
+              <div className="p-5 border-t border-slate-100 flex items-center justify-between gap-3 bg-white">
+                <div>
                   {userRole === UserRole.ADMIN && (
-                    <>
-                      <button
-                        onClick={handleDelete}
-                        disabled={!isDeletePasswordValid}
-                        className={`px-4 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all border ${isDeletePasswordValid ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-600 hover:text-white' : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'}`}
-                      >
-                        Delete
-                      </button>
-                      {!isDeletePasswordValid && <span className="text-red-500">Password needed to delete</span>}
-                    </>
+                    <button
+                      onClick={handleDelete}
+                      disabled={!isDeletePasswordValid}
+                      className={`px-5 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all border ${isDeletePasswordValid ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-600 hover:text-white' : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'}`}
+                    >
+                      Delete
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={closeEditModal} className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200">Cancel</button>
-                  <button disabled={!isPasswordValid || isSavingEdit} onClick={handleSaveEdit} className={`px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest text-white transition-all ${(!isPasswordValid || isSavingEdit) ? 'bg-slate-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                  <button onClick={closeEditModal} className="px-5 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200">Cancel</button>
+                  <button disabled={!isPasswordValid || isSavingEdit} onClick={handleSaveEdit} className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest text-white transition-all ${(!isPasswordValid || isSavingEdit) ? 'bg-slate-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
                     {isSavingEdit ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
@@ -769,19 +764,17 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
                     <td className="px-8 py-5 text-right">
                        <button 
                          onClick={() => openEditModal(d)}
-                         className="p-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition-all border border-slate-200 inline-flex items-center gap-1.5 text-[10px] font-black uppercase mr-2"
+                         className="p-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition-all border border-slate-200 inline-flex items-center justify-center mr-2"
                          title="Edit dispatch"
                        >
                          <Pencil size={14} />
-                         <span className="hidden sm:inline">Edit</span>
                        </button>
                        <button 
                          onClick={() => downloadChallanAsImage(d)}
-                         className="p-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-xl transition-all border border-orange-100 inline-flex items-center gap-1.5 text-[10px] font-black uppercase"
+                         className="p-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-xl transition-all border border-orange-100 inline-flex items-center justify-center"
                          title="Download Delivery Challan"
                        >
                          <Download size={14} />
-                         <span className="hidden sm:inline">DC</span>
                        </button>
                     </td>
                  </tr>
