@@ -418,6 +418,78 @@ app.post('/dispatch', (req, res) => {
   res.json(toDispatch(saved));
 });
 
+const updateDispatchTx = db.transaction((entry) => {
+  db.prepare(`
+    UPDATE dispatch_entries SET 
+      challan_no = ?, date = ?, installer_id = ?, installer_name = ?, installer_mobile = ?,
+      beneficiary_id = ?, farmer_name = ?, farmer_mobile = ?, zone = ?, circle = ?, 
+      division = ?, sub_division = ?, taluka = ?, village = ?, expected_date = ?, 
+      vehicle_no = ?, status = ?, last_update_date = ?
+    WHERE id = ?
+  `).run(
+    entry.challanNo,
+    entry.date,
+    entry.installerId || null,
+    entry.installerName || null,
+    entry.installerMobile || null,
+    entry.beneficiaryId,
+    entry.farmerName,
+    entry.farmerMobile || null,
+    entry.zone || null,
+    entry.circle || null,
+    entry.division || null,
+    entry.subDivision || null,
+    entry.taluka || null,
+    entry.village || null,
+    entry.expectedDate || null,
+    entry.vehicleNo || null,
+    entry.status,
+    entry.lastUpdateDate,
+    entry.id
+  );
+
+  // Delete old materials and insert new ones
+  db.prepare('DELETE FROM dispatch_materials WHERE dispatch_id = ?').run(entry.id);
+  const materialStmt = db.prepare('INSERT INTO dispatch_materials (id, dispatch_id, category, spec, qty, serials) VALUES (?, ?, ?, ?, ?, ?)');
+  entry.materials.forEach((m) => {
+    materialStmt.run(randomUUID(), entry.id, m.category, m.specification, m.quantity, m.serialNumbers ? JSON.stringify(m.serialNumbers) : null);
+  });
+});
+
+app.put('/dispatch/:id', (req, res) => {
+  const existing = db.prepare('SELECT * FROM dispatch_entries WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ message: 'Dispatch entry not found' });
+  
+  const body = req.body || {};
+  const now = new Date().toISOString().split('T')[0];
+  const entry = {
+    id: req.params.id,
+    challanNo: body.challanNo || existing.challan_no,
+    date: body.date || existing.date,
+    installerId: body.installerId || existing.installer_id,
+    installerName: body.installerName || existing.installer_name,
+    installerMobile: body.installerMobile || existing.installer_mobile,
+    beneficiaryId: body.beneficiaryId || existing.beneficiary_id,
+    farmerName: body.farmerName || existing.farmer_name,
+    farmerMobile: body.farmerMobile || existing.farmer_mobile,
+    zone: body.zone || existing.zone,
+    circle: body.circle || existing.circle,
+    division: body.division || existing.division,
+    subDivision: body.subDivision || existing.sub_division,
+    taluka: body.taluka || existing.taluka,
+    village: body.village || existing.village,
+    expectedDate: body.expectedDate || existing.expected_date,
+    vehicleNo: body.vehicleNo || existing.vehicle_no,
+    status: body.status || existing.status,
+    lastUpdateDate: now,
+    materials: body.materials || [],
+  };
+  
+  updateDispatchTx(entry);
+  const saved = db.prepare('SELECT * FROM dispatch_entries WHERE id = ?').get(req.params.id);
+  res.json(toDispatch(saved));
+});
+
 app.patch('/site/:beneficiaryId/status', (req, res) => {
   const { status, remarks, imageUrls } = req.body || {};
   if (!status) return res.status(400).json({ message: 'status required' });
