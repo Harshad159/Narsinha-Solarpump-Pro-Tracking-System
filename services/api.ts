@@ -183,16 +183,12 @@ export const ApiService = {
 
       return result;
     } catch (err) {
-      console.warn('Backend update failed, saving to local backup:', err);
+      console.error('Backend update failed:', err);
       const backup = loadFromBackup<DispatchEntry[]>(DISPATCH_BACKUP_KEY, []);
       const updated = backup.map(e => e.id === entry.id ? entry : e);
       saveToBackup(DISPATCH_BACKUP_KEY, updated);
 
-      const message = `⚠️ Could not reach server. Data updated locally. Will sync when connection restored.`;
-      console.warn(message);
-      alert(message);
-
-      return entry;
+      throw new Error('Could not reach server. Please check if backend is running.');
     }
   },
 
