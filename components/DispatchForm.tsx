@@ -241,15 +241,12 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
     materialsToDispatch.some(item => item.quantity > getAvailableStock(item.category, item.specification)), 
   [materialsToDispatch, stock]);
 
-  const hasSerialErrors = useMemo(() => 
-    materialsToDispatch.some(item => 
-      isTracked(item.category) && item.serialNumbers?.some(s => !s.trim())
-    ), 
-  [materialsToDispatch]);
+  // Serial numbers are now optional - can be added later via Edit
+  const hasSerialErrors = false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (materialsToDispatch.length === 0 || hasStockErrors || hasSerialErrors) return;
+    if (materialsToDispatch.length === 0 || hasStockErrors) return;
     
     const newEntry: DispatchEntry = {
       id: Math.random().toString(36).substr(2, 9),
@@ -468,24 +465,22 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
                     </div>
                   </div>
                 )}
-                {hasSerialErrors && (
-                  <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl flex items-start gap-3">
-                    <Hash className="text-orange-600 shrink-0" size={20} />
-                    <div>
-                      <h5 className="text-[10px] font-black text-orange-900 uppercase tracking-widest">Tracking Info Missing</h5>
-                      <p className="text-[11px] text-orange-700 font-bold leading-tight">Please enter Serial Numbers for all Motors, Controllers, and Panels.</p>
-                    </div>
+                <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-start gap-3">
+                  <Hash className="text-blue-600 shrink-0" size={20} />
+                  <div>
+                    <h5 className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Serial Numbers Optional</h5>
+                    <p className="text-[11px] text-blue-700 font-bold leading-tight">You can create DC without serial numbers and add them later using Edit.</p>
                   </div>
-                )}
+                </div>
               </div>
             )}
           </div>
           
           <button 
             type="submit" 
-            disabled={materialsToDispatch.length === 0 || hasStockErrors || hasSerialErrors} 
+            disabled={materialsToDispatch.length === 0 || hasStockErrors} 
             className={`w-full py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] text-sm shadow-2xl transition-all active:scale-[0.98] ${
-              materialsToDispatch.length === 0 || hasStockErrors || hasSerialErrors
+              materialsToDispatch.length === 0 || hasStockErrors
                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none' 
                 : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-100'
             }`}
@@ -494,9 +489,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
               ? 'Manifest Empty' 
               : hasStockErrors 
                 ? 'Check Inventory Levels' 
-                : hasSerialErrors
-                  ? 'Enter Serial Numbers'
-                  : 'Finalize & Issue Dispatch'
+                : 'Finalize & Issue Dispatch'
             }
           </button>
         </form>
