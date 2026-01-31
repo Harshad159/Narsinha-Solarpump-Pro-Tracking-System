@@ -167,22 +167,12 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
       return;
     }
     
-    const today = new Date().toISOString().split('T')[0];
-    const isSameDay = editingDispatch.date === today;
-    
-    const message = isSameDay 
-      ? 'Delete this dispatch? (Created today - will be permanently removed and challan number can be reused)'
-      : 'Cancel this dispatch? (Entry will be marked as CANCELLED and preserved for audit trail)';
-    
-    const confirmed = window.confirm(message);
+    const confirmed = window.confirm(`Cancel this dispatch (${editingDispatch.challanNo})?\n\nEntry will be marked as CANCELLED and challan number can be reused for a new correct entry.`);
     if (!confirmed) return;
     
     try {
       await onDelete(editingDispatch.id);
-      const successMessage = isSameDay
-        ? `Dispatch deleted. Challan ${editingDispatch.challanNo} can be reused.`
-        : `Dispatch marked as CANCELLED. Entry preserved for audit.`;
-      alert(successMessage);
+      alert(`✅ Dispatch marked as CANCELLED.\n\nChallan ${editingDispatch.challanNo} can now be reused for the corrected entry.`);
       closeEditModal();
     } catch (err) {
       console.error('Failed to delete dispatch', err);

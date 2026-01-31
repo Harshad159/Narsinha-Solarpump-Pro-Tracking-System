@@ -539,36 +539,30 @@ app.delete('/dispatch/:id', (req, res) => {
   if (!entry) return res.status(404).json({ message: 'Dispatch entry not found' });
 
   const today = new Date().toISOString().split('T')[0];
-  const isSameDay = entry.date === today;
 
-  if (isSameDay) {
-    // SAME DAY DELETE: Hard delete and make challan number reusable
-    db.prepare('DELETE FROM dispatch_history WHERE dispatch_id = ?').run(id);
-    db.prepare('DELETE FROM dispatch_materials WHERE dispatch_id = ?').run(id);
-    db.prepare('DELETE FROM dispatch_entries WHERE id = ?').run(id);
+  // ALWAYS soft delete: Mark as CANCELLED and keep record for audit trail
+  db.prepare('UPDATE dispatch_entries SET status = ?, last_update_date = ? WHERE id = ?')
+    .run('CANCELLED', today, id);
 
-    // Add challan number to reusable list
-    const reusableResult = db.prepare('SELECT value FROM meta WHERE key = ?').get('reusable_challans');
-    const reusable = reusableResult ? JSON.parse(reusableResult.value || '[]') : [];
-    if (!reusable.includes(entry.challan_no)) {
-      reusable.push(entry.challan_no);
-      db.prepare('INSERT INTO meta(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
-        .run('reusable_challans', JSON.stringify(reusable));
-    }
+  // Add history entry for cancellation
+  const historyId = randomUUID();
+  db.prepare('INSERT INTO dispatch_history (id, dispatch_id, date, status, remarks, image_urls) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(historyId, id, today, 'CANCELLED', 'Dispatch cancelled', null);
 
-    res.json({ ok: true, message: 'Dispatch deleted (same-day). Challan number can be reused.', reusable: true });
-  } else {
-    // OLD DELETE: Soft delete - mark as CANCELLED, keep audit trail
-    db.prepare('UPDATE dispatch_entries SET status = ?, last_update_date = ? WHERE id = ?')
-      .run('CANCELLED', today, id);
-
-    // Add history entry for cancellation
-    const historyId = randomUUID();
-    db.prepare('INSERT INTO dispatch_history (id, dispatch_id, date, status, remarks, image_urls) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(historyId, id, today, 'CANCELLED', 'Dispatch cancelled by admin', null);
-
-    res.json({ ok: true, message: 'Dispatch marked as CANCELLED. Entry preserved for audit trail.', cancelled: true });
+  // ALWAYS make challan number reusable (regardless of date)
+  const reusableResult = db.prepare('SELECT value FROM meta WHERE key = ?').get('reusable_challans');
+  const reusable = reusableResult ? JSON.parse(reusableResult.value || '[]') : [];
+  if (!reusable.includes(entry.challan_no)) {
+    reusable.push(entry.challan_no);
+    db.prepare('INSERT INTO meta(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+      .run('reusable_challans', JSON.stringify(reusable));
   }
+
+  res.json({ 
+    ok: true, 
+    message: `Dispatch marked as CANCELLED. Challan ${entry.challan_no} can be reused.`,
+    challanNo: entry.challan_no
+  });
 });
 
 // ADMIN: Clear all sample/test data (for going live)
