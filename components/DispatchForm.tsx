@@ -55,9 +55,46 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
   const [editPassword, setEditPassword] = useState('');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
+  // Beneficiary validation state
+  const [beneficiaryStatus, setBeneficiaryStatus] = useState<{
+    isDuplicate: boolean;
+    existingChallan?: string;
+    isChecking: boolean;
+  }>({ isDuplicate: false, isChecking: false });
+
   const today = new Date().toISOString().split('T')[0];
 
   const isTracked = (cat: MaterialCategory) => ['MOTOR', 'PANEL', 'CONTROLLER'].includes(cat);
+
+  // Check beneficiary for duplicates (frontend validation)
+  const checkBeneficiaryAvailability = (beneficiaryId: string) => {
+    if (!beneficiaryId.trim()) {
+      setBeneficiaryStatus({ isDuplicate: false, isChecking: false });
+      return;
+    }
+
+    setBeneficiaryStatus({ ...beneficiaryStatus, isChecking: true });
+    
+    // Simulate slight delay for UX feedback
+    setTimeout(() => {
+      const existing = dispatches.find(
+        d => d.beneficiaryId.toLowerCase() === beneficiaryId.toLowerCase() && d.status !== 'CANCELLED'
+      );
+      
+      if (existing) {
+        setBeneficiaryStatus({
+          isDuplicate: true,
+          existingChallan: existing.challanNo,
+          isChecking: false
+        });
+      } else {
+        setBeneficiaryStatus({
+          isDuplicate: false,
+          isChecking: false
+        });
+      }
+    }, 200);
+  };
 
   const handleCategoryChange = (cat: MaterialCategory) => {
     setItemForm({ 
@@ -309,7 +346,41 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Beneficiary ID</label>
-                  <input required type="text" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 font-mono text-xs uppercase" placeholder="BEN-XXXX" value={siteData.beneficiaryId} onChange={e => setSiteData({...siteData, beneficiaryId: e.target.value})} />
+                  <div className="relative">
+                    <input 
+                      required 
+                      type="text" 
+                      className="w-full p-4 bg-slate-50 border-2 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 font-mono text-xs uppercase transition-colors"
+                      style={{
+                        borderColor: beneficiaryStatus.isDuplicate ? '#dc2626' : '#e2e8f0',
+                        backgroundColor: beneficiaryStatus.isDuplicate ? '#fee2e2' : '#f8fafc'
+                      }}
+                      placeholder="BEN-XXXX" 
+                      value={siteData.beneficiaryId} 
+                      onChange={e => setSiteData({...siteData, beneficiaryId: e.target.value})}
+                      onBlur={() => checkBeneficiaryAvailability(siteData.beneficiaryId)}
+                    />
+                    {beneficiaryStatus.isChecking && (
+                      <div className="absolute right-3 top-3.5 text-blue-500 animate-spin">⚡</div>
+                    )}
+                    {!beneficiaryStatus.isChecking && siteData.beneficiaryId && (
+                      beneficiaryStatus.isDuplicate ? (
+                        <div className="absolute right-3 top-3.5 text-red-600 font-bold">✗</div>
+                      ) : (
+                        <div className="absolute right-3 top-3.5 text-green-600 font-bold">✓</div>
+                      )
+                    )}
+                  </div>
+                  {beneficiaryStatus.isDuplicate && (
+                    <p className="text-[9px] font-bold text-red-600 mt-1">
+                      ⚠️ Already dispatched ({beneficiaryStatus.existingChallan})
+                    </p>
+                  )}
+                  {!beneficiaryStatus.isDuplicate && siteData.beneficiaryId && !beneficiaryStatus.isChecking && (
+                    <p className="text-[9px] font-bold text-green-600 mt-1">
+                      ✓ Available for dispatch
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">W.O.No/SAP PO No.</label>
@@ -489,18 +560,20 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
           
           <button 
             type="submit" 
-            disabled={materialsToDispatch.length === 0 || hasStockErrors} 
+            disabled={materialsToDispatch.length === 0 || hasStockErrors || beneficiaryStatus.isDuplicate} 
             className={`w-full py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] text-sm shadow-2xl transition-all active:scale-[0.98] ${
-              materialsToDispatch.length === 0 || hasStockErrors
+              materialsToDispatch.length === 0 || hasStockErrors || beneficiaryStatus.isDuplicate
                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none' 
                 : 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-100'
             }`}
           >
-            {materialsToDispatch.length === 0 
-              ? 'Manifest Empty' 
-              : hasStockErrors 
-                ? 'Check Inventory Levels' 
-                : 'Finalize & Issue Dispatch'
+            {beneficiaryStatus.isDuplicate
+              ? `Blocked: Already Dispatched (${beneficiaryStatus.existingChallan})`
+              : materialsToDispatch.length === 0 
+                ? 'Manifest Empty' 
+                : hasStockErrors 
+                  ? 'Check Inventory Levels' 
+                  : 'Finalize & Issue Dispatch'
             }
           </button>
         </form>
