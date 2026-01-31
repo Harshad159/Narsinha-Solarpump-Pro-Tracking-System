@@ -25,7 +25,9 @@ import {
   Phone,
   UserCheck,
   Trash2,
-  Zap
+  Zap,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import JSZip from 'jszip';
 
@@ -57,10 +59,12 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
   const [isProcessingImages, setIsProcessingImages] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const ITEMS_PER_PAGE = 10;
 
   const filteredDispatches = useMemo(() => {
-    return dispatches.filter(d => {
+    const filtered = dispatches.filter(d => {
       const matchesSearch = 
         d.farmerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         d.beneficiaryId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,7 +76,27 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
       
       return matchesSearch && matchesStatus;
     });
+    
+    // Sort by date descending (latest first), then by challan number descending
+    return filtered.sort((a, b) => {
+      const dateCompare = b.date.localeCompare(a.date);
+      if (dateCompare !== 0) return dateCompare;
+      const aNum = parseInt(a.challanNo.replace(/\D/g, '')) || 0;
+      const bNum = parseInt(b.challanNo.replace(/\D/g, '')) || 0;
+      return bNum - aNum;
+    });
   }, [dispatches, searchTerm, statusFilter]);
+
+  const totalPages = Math.ceil(filteredDispatches.length / ITEMS_PER_PAGE);
+  const paginatedDispatches = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredDispatches.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredDispatches, currentPage]);
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const getStockStatus = (qty: number) => {
     if (qty <= 0) return { color: 'text-red-600', isLow: true, isCritical: true };
@@ -301,7 +325,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredDispatches.map(d => (
+              {paginatedDispatches.map(d => (
                 <tr key={d.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-8 py-5">
                      <div className="font-black text-slate-900 text-base leading-none mb-1">{d.farmerName}</div>
@@ -345,6 +369,28 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between bg-slate-50 p-4 border-t border-slate-100">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 transition-all"
+            >
+              <ChevronLeft size={16} /> Previous
+            </button>
+            <div className="text-sm font-bold text-slate-600">
+              Page <span className="text-blue-600 font-black">{currentPage}</span> of <span className="text-blue-600 font-black">{totalPages}</span>
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-all"
+            >
+              Next <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
       </div>
 
       {selectedSite && (
