@@ -13,7 +13,8 @@ export enum InstallStatus {
   PANELS = 'Panels Installed',
   MOTOR = 'Motor Installed',
   WIRING = 'Wiring & Controller',
-  COMPLETED = 'Completed'
+  COMPLETED = 'Completed',
+  CANCELLED = 'CANCELLED'
 }
 
 export type MaterialCategory = 'MOTOR' | 'PANEL' | 'STRUCTURE' | 'CONTROLLER' | 'BOS';

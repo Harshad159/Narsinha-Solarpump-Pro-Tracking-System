@@ -166,10 +166,23 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
       alert('Password required to delete. Use Narsinha@2400');
       return;
     }
-    const confirmed = window.confirm('Delete this dispatch entry? This cannot be undone.');
+    
+    const today = new Date().toISOString().split('T')[0];
+    const isSameDay = editingDispatch.date === today;
+    
+    const message = isSameDay 
+      ? 'Delete this dispatch? (Created today - will be permanently removed and challan number can be reused)'
+      : 'Cancel this dispatch? (Entry will be marked as CANCELLED and preserved for audit trail)';
+    
+    const confirmed = window.confirm(message);
     if (!confirmed) return;
+    
     try {
       await onDelete(editingDispatch.id);
+      const successMessage = isSameDay
+        ? `Dispatch deleted. Challan ${editingDispatch.challanNo} can be reused.`
+        : `Dispatch marked as CANCELLED. Entry preserved for audit.`;
+      alert(successMessage);
       closeEditModal();
     } catch (err) {
       console.error('Failed to delete dispatch', err);
@@ -264,15 +277,23 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
       }]
     };
 
-    const result = await onAdd(newEntry);
-    if (result) {
-      setSiteData({ 
-        installerName: '', installerId: '', installerMobile: '', beneficiaryId: '', farmerName: '', farmerMobile: '', woNo: '',
-        zone: '', circle: '', division: '', subDivision: '', taluka: '', village: '', 
-        expectedDate: '', vehicleNo: '' 
-      });
-      setMaterialsToDispatch([]);
-      setTimeout(() => downloadChallanAsImage(result), 500);
+    try {
+      const result = await onAdd(newEntry);
+      if (result) {
+        setSiteData({ 
+          installerName: '', installerId: '', installerMobile: '', beneficiaryId: '', farmerName: '', farmerMobile: '', woNo: '',
+          zone: '', circle: '', division: '', subDivision: '', taluka: '', village: '', 
+          expectedDate: '', vehicleNo: '' 
+        });
+        setMaterialsToDispatch([]);
+        setTimeout(() => downloadChallanAsImage(result), 500);
+      }
+    } catch (err: any) {
+      if (err.message && err.message.includes('already dispatched')) {
+        alert(err.message);
+      } else {
+        alert('Failed to create dispatch. Please try again.');
+      }
     }
   };
 

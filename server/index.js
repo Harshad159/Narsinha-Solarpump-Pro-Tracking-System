@@ -203,6 +203,19 @@ const toDispatch = (row) => {
 };
 
 const getNextChallan = () => {
+  // Check if there are any reusable challan numbers (from same-day deletes)
+  const reusableResult = db.prepare('SELECT value FROM meta WHERE key = ?').get('reusable_challans');
+  if (reusableResult) {
+    const reusable = JSON.parse(reusableResult.value || '[]');
+    if (reusable.length > 0) {
+      // Use the first available reusable challan
+      const challanToReuse = reusable.shift();
+      db.prepare('UPDATE meta SET value = ? WHERE key = ?').run(JSON.stringify(reusable), 'reusable_challans');
+      return challanToReuse;
+    }
+  }
+  
+  // No reusable challans, generate next sequential number
   const current = db.prepare('SELECT value FROM meta WHERE key = ?').get('last_challan_no');
   const next = current ? Number(current.value) + 1 : 1;
   const formatted = `DC-${String(next).padStart(4, '0')}`;
@@ -389,6 +402,19 @@ app.post('/dispatch', (req, res) => {
   if (!body.materials || !Array.isArray(body.materials) || body.materials.length === 0) {
     return res.status(400).json({ message: 'materials required' });
   }
+  
+  // Check for duplicate beneficiary (except CANCELLED entries)
+  if (body.beneficiaryId) {
+    const existing = db.prepare('SELECT challan_no, status FROM dispatch_entries WHERE beneficiary_id = ? AND status != ?')
+      .get(body.beneficiaryId, 'CANCELLED');
+    if (existing) {
+      return res.status(400).json({ 
+        message: `Material already dispatched to this beneficiary (${existing.challan_no})`,
+        challanNo: existing.challan_no
+      });
+    }
+  }
+  
   const now = new Date().toISOString().split('T')[0];
   const entry = {
     id: body.id || randomUUID(),
@@ -512,13 +538,37 @@ app.delete('/dispatch/:id', (req, res) => {
   const entry = db.prepare('SELECT * FROM dispatch_entries WHERE id = ?').get(id);
   if (!entry) return res.status(404).json({ message: 'Dispatch entry not found' });
 
-  // Delete cascade: history, materials, then entry
-  // Note: Stock is calculated dynamically (Inward - Dispatched), so no need to restore
-  db.prepare('DELETE FROM dispatch_history WHERE dispatch_id = ?').run(id);
-  db.prepare('DELETE FROM dispatch_materials WHERE dispatch_id = ?').run(id);
-  db.prepare('DELETE FROM dispatch_entries WHERE id = ?').run(id);
+  const today = new Date().toISOString().split('T')[0];
+  const isSameDay = entry.date === today;
 
-  res.json({ ok: true, message: 'Dispatch deleted successfully' });
+  if (isSameDay) {
+    // SAME DAY DELETE: Hard delete and make challan number reusable
+    db.prepare('DELETE FROM dispatch_history WHERE dispatch_id = ?').run(id);
+    db.prepare('DELETE FROM dispatch_materials WHERE dispatch_id = ?').run(id);
+    db.prepare('DELETE FROM dispatch_entries WHERE id = ?').run(id);
+
+    // Add challan number to reusable list
+    const reusableResult = db.prepare('SELECT value FROM meta WHERE key = ?').get('reusable_challans');
+    const reusable = reusableResult ? JSON.parse(reusableResult.value || '[]') : [];
+    if (!reusable.includes(entry.challan_no)) {
+      reusable.push(entry.challan_no);
+      db.prepare('INSERT INTO meta(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+        .run('reusable_challans', JSON.stringify(reusable));
+    }
+
+    res.json({ ok: true, message: 'Dispatch deleted (same-day). Challan number can be reused.', reusable: true });
+  } else {
+    // OLD DELETE: Soft delete - mark as CANCELLED, keep audit trail
+    db.prepare('UPDATE dispatch_entries SET status = ?, last_update_date = ? WHERE id = ?')
+      .run('CANCELLED', today, id);
+
+    // Add history entry for cancellation
+    const historyId = randomUUID();
+    db.prepare('INSERT INTO dispatch_history (id, dispatch_id, date, status, remarks, image_urls) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(historyId, id, today, 'CANCELLED', 'Dispatch cancelled by admin', null);
+
+    res.json({ ok: true, message: 'Dispatch marked as CANCELLED. Entry preserved for audit trail.', cancelled: true });
+  }
 });
 
 // ADMIN: Clear all sample/test data (for going live)
