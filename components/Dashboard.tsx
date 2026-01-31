@@ -213,7 +213,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stock, dispatches, userRole, onUp
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-32">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase italic leading-none">Operations Dashboard</h2>
