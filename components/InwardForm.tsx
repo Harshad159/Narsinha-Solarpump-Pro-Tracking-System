@@ -20,12 +20,15 @@ const InwardForm: React.FC<InwardFormProps> = ({ onAdd, onUpdate, onDelete, entr
 
   const [searchSupplier, setSearchSupplier] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 15;
+  const ITEMS_PER_PAGE = 10;
 
   const filteredEntries = useMemo(() => {
-    return entries.filter(e => 
+    const filtered = entries.filter(e => 
       e.supplier.toLowerCase().includes(searchSupplier.toLowerCase())
     );
+    
+    // Sort by date descending (latest first)
+    return filtered.sort((a, b) => b.date.localeCompare(a.date));
   }, [entries, searchSupplier]);
 
   const totalPages = Math.ceil(filteredEntries.length / ITEMS_PER_PAGE);
