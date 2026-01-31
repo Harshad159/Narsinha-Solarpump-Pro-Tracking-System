@@ -28,13 +28,20 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
 
   const [searchBeneficiary, setSearchBeneficiary] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 15;
+  const ITEMS_PER_PAGE = 10;
 
   const filteredDispatches = useMemo(() => {
-    return dispatches.filter(d =>
+    const filtered = dispatches.filter(d =>
       d.farmerName.toLowerCase().includes(searchBeneficiary.toLowerCase()) ||
       d.beneficiaryId.toLowerCase().includes(searchBeneficiary.toLowerCase())
     );
+    
+    // Sort by challan number descending (newest first)
+    return filtered.sort((a, b) => {
+      const aNum = parseInt(a.challanNo.replace(/\D/g, '')) || 0;
+      const bNum = parseInt(b.challanNo.replace(/\D/g, '')) || 0;
+      return bNum - aNum;
+    });
   }, [dispatches, searchBeneficiary]);
 
   const totalPages = Math.ceil(filteredDispatches.length / ITEMS_PER_PAGE);
@@ -839,20 +846,24 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onAdd, onUpdate, onDelete, 
                        </div>
                     </td>
                     <td className="px-8 py-5 text-right">
-                       <button 
-                         onClick={() => openEditModal(d)}
-                         className="p-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition-all border border-slate-200 inline-flex items-center justify-center mr-2"
-                         title="Edit dispatch"
-                       >
-                         <Pencil size={14} />
-                       </button>
-                       <button 
-                         onClick={() => downloadChallanAsImage(d)}
-                         className="p-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-xl transition-all border border-orange-100 inline-flex items-center justify-center"
-                         title="Download Delivery Challan"
-                       >
-                         <Download size={14} />
-                       </button>
+                       <div className="flex items-center justify-end gap-2.5">
+                         <button 
+                           onClick={() => openEditModal(d)}
+                           className="px-4 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all duration-200 border border-blue-200 inline-flex items-center justify-center gap-1.5 font-black text-[10px] uppercase tracking-widest"
+                           title="Edit dispatch"
+                         >
+                           <Pencil size={14} />
+                           Edit
+                         </button>
+                         <button 
+                           onClick={() => downloadChallanAsImage(d)}
+                           className="px-4 py-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-lg transition-all duration-200 border border-orange-200 inline-flex items-center justify-center gap-1.5 font-black text-[10px] uppercase tracking-widest"
+                           title="Download Delivery Challan"
+                         >
+                           <Download size={14} />
+                           Download
+                         </button>
+                       </div>
                     </td>
                  </tr>
                ))}
