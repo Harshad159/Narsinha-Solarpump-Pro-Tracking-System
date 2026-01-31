@@ -512,25 +512,13 @@ app.delete('/dispatch/:id', (req, res) => {
   const entry = db.prepare('SELECT * FROM dispatch_entries WHERE id = ?').get(id);
   if (!entry) return res.status(404).json({ message: 'Dispatch entry not found' });
 
-  // Get materials before deletion to restore stock
-  const materials = db.prepare('SELECT * FROM dispatch_materials WHERE dispatch_id = ?').all(id);
-  
-  // Restore stock for each material
-  materials.forEach(m => {
-    db.prepare(`
-      INSERT INTO stock (category, specification, quantity)
-      VALUES (?, ?, ?)
-      ON CONFLICT(category, specification) 
-      DO UPDATE SET quantity = quantity + ?
-    `).run(m.category, m.specification, m.quantity, m.quantity);
-  });
-
   // Delete cascade: history, materials, then entry
+  // Note: Stock is calculated dynamically (Inward - Dispatched), so no need to restore
   db.prepare('DELETE FROM dispatch_history WHERE dispatch_id = ?').run(id);
   db.prepare('DELETE FROM dispatch_materials WHERE dispatch_id = ?').run(id);
   db.prepare('DELETE FROM dispatch_entries WHERE id = ?').run(id);
 
-  res.json({ ok: true, message: 'Dispatch deleted and stock restored' });
+  res.json({ ok: true, message: 'Dispatch deleted successfully' });
 });
 
 // ADMIN: Clear all sample/test data (for going live)
